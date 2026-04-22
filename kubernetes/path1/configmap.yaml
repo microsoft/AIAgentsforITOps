@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-webapp-config
+  namespace: agent-demo
+data:
+  # Note: Secrets are managed via Azure Key Vault CSI Driver
+  # Sensitive values like endpoints are mounted as files from Key Vault
+  azure-search-name: "${AZURE_SEARCH_NAME}"
+  azure-openai-deployment: "gpt-4.1-mini"
+  agent-mode: "custom"

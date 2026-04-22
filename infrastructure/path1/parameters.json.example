@@ -1,0 +1,14 @@
+{
+  "subscriptionId": "<your-azure-subscription-id>",
+  "tenantId": "<your-azure-tenant-id>",
+  "location": "<location>",
+  "resourceGroupName": "<rg-name>",
+  "resourcePrefix": "<prefixname>",
+  "environment": "dev",
+  "enablePrivateEndpoints": false,
+  "enableMonitoring": true,
+  "tags": {
+    "Environment": "dev",
+    "Project": "AgentsForITOps"
+  }
+}

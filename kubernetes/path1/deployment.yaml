@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-webapp
+  namespace: agent-demo
+  labels:
+    app: agent-webapp
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-webapp
+  template:
+    metadata:
+      labels:
+        app: agent-webapp
+        version: v1
+    spec:
+      serviceAccountName: agent-webapp-sa
+      containers:
+      - name: agent-webapp
+        image: ${AZURE_CONTAINER_REGISTRY}/agent-webapp:${IMAGE_TAG}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        # Secrets are read from mounted files at /mnt/secrets-store/
+        # No environment variables for secrets - more secure
+        - name: SECRETS_PATH
+          value: "/mnt/secrets-store"
+        
+        # Static configuration
+        - name: AzureSearch__IndexName
+          value: "conference-documents"
+        - name: Foundry__AgentName
+          value: "conference-expert-agent"
+        - name: Foundry__ModelDeploymentName
+          value: "gpt-4o"
+        
+        volumeMounts:
+        # Mount Key Vault secrets via CSI driver
+        - name: keyvault-secrets
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      
+      volumes:
+      - name: keyvault-secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault-secrets"
+      
+      # Pull images from ACR using managed identity
+      # Note: Requires AKS cluster to have ACR integration enabled

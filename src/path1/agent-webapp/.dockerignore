@@ -1,0 +1,31 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userprefs
+.DS_Store
+
+# Azure and sensitive files
+*.publishsettings
+publish/
+*.pubxml
+*.azurePubxml
+
+# Environment files
+.env
+.env.local
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# Logs
+logs/
+*.log
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
