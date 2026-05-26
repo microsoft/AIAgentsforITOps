@@ -1,5 +1,21 @@
 # Common helper functions for deployment scripts
 
+function Write-InfoBanner {
+    param([string]$Title)
+    
+    $width = 70
+    $padding = [Math]::Max(0, ($width - $Title.Length - 2) / 2)
+    $paddingStr = " " * [Math]::Floor($padding)
+    
+    Write-Host ""
+    Write-Host ("═" * $width) -ForegroundColor Green
+    Write-Host ("═" * $width) -ForegroundColor Green
+    Write-Host "$paddingStr $Title $paddingStr" -ForegroundColor White -BackgroundColor DarkGreen
+    Write-Host ("═" * $width) -ForegroundColor Green
+    Write-Host ("═" * $width) -ForegroundColor Green
+    Write-Host ""
+}
+
 function Write-SectionHeader {
     param([string]$Title)
     

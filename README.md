@@ -98,7 +98,7 @@ This workshop offers **two distinct paths** for managing AI agents on Azure. Bot
 ## Path Comparison
 
 | Feature | Path 1: Custom Agent | Path 2: Foundry Agent |
-|---------|---------------------|----------------------|
+| ---------|---------------------|----------------------|
 | **Agent Hosting** | Self-hosted on AKS | Managed by Foundry |
 | **LLM Integration** | Direct Azure OpenAI | Via Foundry models |
 | **RAG Pattern** | Custom implementation | Foundry knowledge base |
@@ -133,7 +133,7 @@ Both paths implement the same agent experience - answering questions about Micro
 
 ## Repository Structure
 
-> **Note:** Each workshop path is **fully self-contained** with its own infrastructure scripts, application code, Kubernetes manifests, and workshop guides. Path 1 is complete and ready to use. Path 2 is planned but not yet implemented.
+> **Note:** Each workshop path is **fully self-contained** with its own infrastructure scripts, application code, Kubernetes manifests, and workshop guides. **Path 1 is complete and ready to use.** Path 2 is under development - placeholder READMEs are in place with descriptions of planned content.
 
 ```markdown
 AgentsforITOps/
@@ -157,19 +157,8 @@ AgentsforITOps/
 │   │   │   └── monitoring.ps1
 │   │   └── parameters.json.example
 │   │
-│   ├── path2/                      # Path 2: Foundry Agent infrastructure
-│   │   ├── deploy-infra.ps1       # Main deployment for Foundry agent
-│   │   ├── deploy-app.ps1         # UI deployment to AKS
-│   │   ├── modules/
-│   │   │   ├── storage.ps1
-│   │   │   ├── search.ps1
-│   │   │   ├── foundry.ps1        # Foundry project + agent
-│   │   │   ├── knowledge-base.ps1 # Knowledge base configuration
-│   │   │   ├── aks.ps1
-│   │   │   ├── acr.ps1
-│   │   │   ├── keyvault.ps1
-│   │   │   └── monitoring.ps1
-│   │   └── parameters.json.example
+│   ├── path2/                      # Path 2: Foundry Agent infrastructure (Under Development)
+│   │   └── README.md              # 🚧 Placeholder - Under development
 │   │
 │   └── common/                     # Shared infrastructure modules
 │       ├── common.ps1             # Common functions
@@ -186,8 +175,8 @@ AgentsforITOps/
 │   │       ├── Program.cs
 │   │       └── Dockerfile
 │   │
-│   └── path2/                      # Path 2: Foundry Agent application (TBD)
-│       └── (To be implemented)     # Lightweight UI-only app
+│   └── path2/                      # Path 2: Foundry Agent application (Under Development)
+│       └── README.md              # 🚧 Placeholder - Under development
 │
 ├── kubernetes/
 │   ├── path1/                     # Path 1: Custom agent manifests
@@ -196,11 +185,8 @@ AgentsforITOps/
 │   │   ├── secretproviderclass.yaml
 │   │   └── configmap.yaml
 │   │
-│   └── path2/                     # Path 2: Foundry agent manifests
-│       ├── deployment.yaml
-│       ├── service.yaml
-│       ├── secretproviderclass.yaml
-│       └── configmap.yaml
+│   └── path2/                     # Path 2: Foundry agent manifests (Under Development)
+│       └── README.md              # 🚧 Placeholder - Under development
 │
 └── workshop/                      # Workshop guides
     ├── 00-prerequisites.md        # Common prerequisites
@@ -215,15 +201,8 @@ AgentsforITOps/
     │   ├── 06-cost-management.md
     │   └── 07-disaster-recovery.md
     │
-    └── path2/                     # Path 2: Foundry Agent Workshop
-        ├── README.md              # Path 2 overview
-        ├── 01-deploy-infrastructure.md
-        ├── 02-foundry-agent-setup.md
-        ├── 03-knowledge-base-config.md
-        ├── 04-managed-identity.md
-        ├── 05-monitoring-foundry.md
-        ├── 06-cost-management.md
-        └── 07-disaster-recovery.md
+    └── path2/                     # Path 2: Foundry Agent Workshop (Under Development)
+        └── README.md              # 🚧 Placeholder - Under development
 ```
 
 ---
