@@ -38,7 +38,6 @@ function New-WorkshopAKSCluster {
         "--no-ssh-key",
         "--network-plugin", "azure",
         "--network-policy", "azure",
-        "--enable-addons", "monitoring",
         "--enable-cluster-autoscaler",
         "--min-count", "2",
         "--max-count", "5"
@@ -170,5 +169,42 @@ function New-WorkshopAKSCluster {
         KubeletIdentityClientId = $kubeletIdentityClientId
         OidcIssuer = $oidcIssuer
         Fqdn = $aks.fqdn
+    }
+}
+
+function Enable-AKSMonitoring {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ResourceGroupName,
+        
+        [Parameter(Mandatory = $true)]
+        [string]$AksName,
+        
+        [Parameter(Mandatory = $true)]
+        [string]$WorkspaceResourceId
+    )
+    
+    Write-InfoLog "Enabling monitoring on AKS cluster: $AksName"
+    
+    try {
+        az aks enable-addons `
+            --resource-group $ResourceGroupName `
+            --name $AksName `
+            --addons monitoring `
+            --workspace-resource-id $WorkspaceResourceId `
+            2>&1 | Out-Null
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-SuccessLog "AKS monitoring enabled successfully"
+            return $true
+        } else {
+            Write-WarningLog "Could not enable AKS monitoring. This can be configured later in the Azure portal."
+            return $false
+        }
+    }
+    catch {
+        Write-WarningLog "Error enabling AKS monitoring: $($_.Exception.Message)"
+        Write-InfoLog "Monitoring can be enabled later via: az aks enable-addons --addons monitoring"
+        return $false
     }
 }

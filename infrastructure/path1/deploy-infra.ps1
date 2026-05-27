@@ -361,6 +361,15 @@ try {
         -VNetName $(if ($vnet) { $vnet.Name } else { $null }) `
         -Tags $params.tags
     
+    # Enable AKS monitoring (if monitoring is enabled)
+    if ($params.enableMonitoring -and $appInsights) {
+        Write-InfoLog "Configuring AKS monitoring integration"
+        Enable-AKSMonitoring `
+            -ResourceGroupName $params.resourceGroupName `
+            -AksName $aks.Name `
+            -WorkspaceResourceId $appInsights.WorkspaceId
+    }
+    
     # Step 11: Create Azure OpenAI
     Write-SectionHeader "Azure OpenAI"
     . "$PSScriptRoot\modules\openai.ps1"

@@ -91,25 +91,6 @@ This workshop offers **two distinct paths** for managing AI agents on Azure. Bot
 - kubectl CLI
 - .NET 8.0 SDK (optional, for local development)
 
-📖 **[Complete Prerequisites Guide](workshop/00-prerequisites.md)**
-
----
-
-## Path Comparison
-
-| Feature | Path 1: Custom Agent | Path 2: Foundry Agent |
-| ---------|---------------------|----------------------|
-| **Agent Hosting** | Self-hosted on AKS | Managed by Foundry |
-| **LLM Integration** | Direct Azure OpenAI | Via Foundry models |
-| **RAG Pattern** | Custom implementation | Foundry knowledge base |
-| **Monitoring** | Application Insights on AKS | Foundry tracing + AKS |
-| **Agent Visibility** | Code-based | Foundry portal |
-| **Scaling** | AKS pod autoscaling | Foundry managed |
-| **Deployment Complexity** | Higher | Lower |
-| **Control Level** | Full control | Managed service |
-| **Cost** | ~$250-275/month | ~$300-350/month |
-| **Best For** | Custom requirements | Standard scenarios |
-
 ---
 
 ## Sample Agent: Conference Expert
@@ -224,18 +205,10 @@ AgentsforITOps/
 
 ### Path 2: Foundry-Hosted Agent
 
-- Azure AI Search (Basic): ~$75/month
-- AKS (1-node cluster, D2s_v3): ~$75/month (UI only)
-- Azure AI Foundry Project: Variable (managed service)
-- Model usage: ~$5-15/month (depending on usage)
-- Azure Storage (Standard LRS): ~$5/month
-- Container Registry (Basic): ~$5/month
-- Key Vault: ~$0.03/month
-- Application Insights: ~$2.30/month + data ingestion
-- **Total**: ~$167-177/month + Foundry hosting + usage
+> 🚧 **Under Development**
 
 > **💡 Tip**: Delete resources after completing the workshop to avoid ongoing charges.
-> 
+
 > **Note**: Actual costs may vary based on usage patterns, data transfer, and regional pricing.
 
 ---

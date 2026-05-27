@@ -151,31 +151,15 @@ This script will:
 
 **Expected timeline:** 5-10 minutes
 
-### Verify Application Deployment
-
-Wait for the external IP to be assigned:
-
-```powershell
-# Watch service until EXTERNAL-IP appears (may take 2-3 minutes)
-kubectl get service agent-service -n agent-demo --watch
-```
-
-**Expected output:**
-
-```powershell
-NAME            TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)        AGE
-agent-service   LoadBalancer   10.0.123.45    X.X.X.X         80:30123/TCP   2m
-```
-
-Press `Ctrl+C` once you see the external IP.
-
 ### Test the Application
 
-Open the application in your browser:
+Once the application is deployed, the IP address of the LoadBalancer service will be displayed in the console output. You can open
+
+Alternatively, you can retrieve the IP address and open the web application via:
 
 ```powershell
 # Get the external IP
-$externalIP = kubectl get service agent-service -n agent-demo -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+$externalIP = kubectl get service agent-webapp-service -n agent-demo -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
 Write-Host "Application URL: http://$externalIP" -ForegroundColor Green
 
 # Open in browser
@@ -194,7 +178,7 @@ Start-Process "http://$externalIP"
 
 ## Next Steps
 
-With infrastructure deployed **and the application running**, you'll now explore how managed identities enable secure service-to-service authentication:
+With the infrastructure deployed **and the application running**, you'll now explore how managed identities enable secure service-to-service authentication:
 
 👉 **[Lab 2: Managed Identity](02-managed-identity.md)**
 

@@ -12,13 +12,13 @@ In this workshop path, you'll learn to manage a **custom AI agent running entire
 └──────┬──────┘
        │
        ▼
-┌─────────────────────────────────────────────┐
-│  AKS Cluster                                │
+┌────────────────────────────────────────────┐
+│  AKS Cluster                               │
 │  ┌──────────────────────────────────────┐  │
 │  │  Agent Web App (.NET)                │  │
-│  │  ┌────────────┐  ┌────────────────┐ │  │
-│  │  │  Chat UI   │  │  Agent Service │ │  │
-│  │  └────────────┘  └────┬───────────┘ │  │
+│  │  ┌────────────┐  ┌────────────────┐  │  │
+│  │  │  Chat UI   │  │  Agent Service │  │  │
+│  │  └────────────┘  └────┬───────────┘  │  │
 │  │                       │              │  │
 │  └───────────────────────┼──────────────┘  │
 └────────────────────────────────────────────┘
@@ -43,54 +43,61 @@ In this workshop path, you'll learn to manage a **custom AI agent running entire
 This workshop focuses on **infrastructure management for AI agents**, not agent development. You'll learn to deploy and manage the Azure infrastructure that supports custom agents running on AKS.
 
 ### 1. **Infrastructure Deployment** (Lab 1)
-   - Deploy AKS cluster for agent hosting
-   - Provision Azure OpenAI and AI Search services
-   - Set up Azure Container Registry for image management
-   - Configure Storage Account for document indexing
-   - Deploy Key Vault for secrets management
-   - Set up Application Insights for monitoring
+
+- Deploy AKS cluster for agent hosting
+- Provision Azure OpenAI and AI Search services
+- Set up Azure Container Registry for image management
+- Configure Storage Account for document indexing
+- Deploy Key Vault for secrets management
+- Set up Application Insights for monitoring
 
 ### 2. **Managed Identity & RBAC** (Lab 2)
-   - Configure AKS kubelet managed identity
-   - Assign RBAC roles for Azure OpenAI access
-   - Set up permissions for Azure AI Search
-   - Grant Key Vault Secrets User access
-   - Understand identity-based authentication
+
+- Configure AKS kubelet managed identity
+- Assign RBAC roles for Azure OpenAI access
+- Set up permissions for Azure AI Search
+- Grant Key Vault Secrets User access
+- Understand identity-based authentication
 
 ### 3. **Networking & Security** (Lab 3)
-   - Configure AKS networking and service endpoints
-   - Implement network security groups
-   - Set up secure service-to-service communication
-   - Understand VNet integration patterns
-   - Review network traffic flow
+
+- Configure AKS networking and service endpoints
+- Implement network security groups
+- Set up secure service-to-service communication
+- Understand VNet integration patterns
+- Review network traffic flow
 
 ### 4. **Secrets Management** (Lab 4)
-   - Configure Azure Key Vault Provider for CSI Driver
-   - Mount secrets as read-only files in pods
-   - Manage application secrets securely
-   - Understand CSI driver architecture
-   - Avoid storing secrets in Kubernetes
+
+- Configure Azure Key Vault Provider for CSI Driver
+- Mount secrets as read-only files in pods
+- Manage application secrets securely
+- Understand CSI driver architecture
+- Avoid storing secrets in Kubernetes
 
 ### 5. **Monitoring & Observability** (Lab 5)
-   - Configure Application Insights for AKS pods
-   - Set up distributed tracing
-   - Monitor Azure OpenAI token usage
-   - Create custom dashboards
-   - Analyze application performance
+
+- Configure Application Insights for AKS pods
+- Set up distributed tracing
+- Monitor Azure OpenAI token usage
+- Create custom dashboards
+- Analyze application performance
 
 ### 6. **Cost Management** (Lab 6)
-   - Monitor and optimize AKS resource usage
-   - Track Azure OpenAI consumption and costs
-   - Implement cost alerts and budgets
-   - Understand pricing models
-   - Optimize resource allocation
+
+- Monitor and optimize AKS resource usage
+- Track Azure OpenAI consumption and costs
+- Implement cost alerts and budgets
+- Understand pricing models
+- Optimize resource allocation
 
 ### 7. **Disaster Recovery** (Lab 7)
-   - Implement backup strategies for Kubernetes
-   - Configure pod disruption budgets
-   - Plan for high availability
-   - Test failover scenarios
-   - Document recovery procedures
+
+- Implement backup strategies for Kubernetes
+- Configure pod disruption budgets
+- Plan for high availability
+- Test failover scenarios
+- Document recovery procedures
 
 ## Key Differences from Path 2
 
@@ -157,22 +164,6 @@ Follow these labs in order:
    - Test failover scenarios
 
 **Total estimated time:** ~5-6 hours
-
-## Quick Start
-
-```powershell
-# 1. Navigate to Path 1 infrastructure (from repository root)
-cd infrastructure/path1
-
-# 2. Deploy all infrastructure
-.\deploy-infra.ps1
-
-# 3. Deploy the custom agent
-.\deploy-app.ps1
-
-# 4. Access your agent
-# The deployment script will display the endpoint URL
-```
 
 ## Next Steps
 
