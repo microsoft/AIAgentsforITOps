@@ -153,7 +153,7 @@ This script will:
 
 ### Test the Application
 
-Once the application is deployed, the IP address of the LoadBalancer service will be displayed in the console output. You can open
+Once the application is deployed, the IP address of the LoadBalancer service will be displayed in the console output. You can open the application by using the provided URL.
 
 Alternatively, you can retrieve the IP address and open the web application via:
 
