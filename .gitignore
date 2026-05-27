@@ -9,6 +9,7 @@ workshop-env.txt
 # Backup files
 keyvault-backup/
 *.backup
+secretproviderclass-backup.yaml
 
 # .NET
 src/**/bin/
