@@ -13,7 +13,6 @@ Participants will learn to manage:
 - **Secrets Management**: Azure Key Vault integration
 - **Monitoring & Observability**: Application Insights and logging
 - **Cost Management**: Resource optimization and budgeting
-- **Disaster Recovery & HA**: High availability patterns
 
 ---
 
@@ -179,8 +178,7 @@ AgentsforITOps/
     │   ├── 03-aks-agent-deployment.md
     │   ├── 04-managed-identity.md
     │   ├── 05-monitoring-aks.md
-    │   ├── 06-cost-management.md
-    │   └── 07-disaster-recovery.md
+    │   └── 06-cost-management.md
     │
     └── path2/                     # Path 2: Foundry Agent Workshop (Under Development)
         └── README.md              # 🚧 Placeholder - Under development

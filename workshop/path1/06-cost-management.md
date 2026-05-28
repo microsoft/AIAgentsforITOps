@@ -2,7 +2,7 @@
 
 ## Overview
 
-Analyze, optimize, and control costs for the AI agent Azure infrastructure.
+Analyze, optimize, and control costs for the AI agent on Azure infrastructure.
 
 **Time:** 20-25 minutes  
 **Difficulty:** Intermediate
@@ -17,53 +17,85 @@ Analyze, optimize, and control costs for the AI agent Azure infrastructure.
 
 ## Step 1: View Current Costs
 
-```powershell
-$config = Get-Content ..\infrastructure\deployment-output.json | ConvertFrom-Json
-$resourceGroup = $config.resourceGroupName
-$subscriptionId = $config.subscriptionId
+### 1.1 View Costs in Azure Portal
 
-# Get current month costs
-$endDate = Get-Date -Format "yyyy-MM-dd"
-$startDate = (Get-Date).AddDays(-30).ToString("yyyy-MM-dd")
+1. **Open Azure Portal**, navigate to **Cost Management + Billing**, and select **Cost Management**
+2. In the left menu, click **Cost analysis** under Reporting + analytics
+3. Set the scope to your **Resource Group** (from `deployment-output.json`)
+4. Select the **Accumulated costs** report
+5. Change the time range to **Last 7 days**
+6. Change Group by to **Resource type** and the Granularity to **None** to see cost breakdown
+7. Review the chart and table showing actual costs
 
-# Query cost management
-az costmanagement query `
-    --type ActualCost `
-    --dataset-filter "{\"and\":[{\"dimensions\":{\"name\":\"ResourceGroup\",\"operator\":\"In\",\"values\":[\"$resourceGroup\"]}}]}" `
-    --timeframe Custom `
-    --time-period from=$startDate to=$endDate `
-    --dataset-aggregation "{\"totalCost\":{\"name\":\"Cost\",\"function\":\"Sum\"}}" `
-    --dataset-grouping name="ResourceType" type="Dimension" `
-    --query "rows" `
-    --output table
+You should see costs broken down by:
 
-Write-Host "`nEstimated monthly cost breakdown:" -ForegroundColor Cyan
-Write-Host "- AKS (2 nodes): ~`$150/month" -ForegroundColor Yellow
-Write-Host "- AI Search (Basic): ~`$75/month" -ForegroundColor Yellow
-Write-Host "- Storage (Standard LRS): ~`$5/month" -ForegroundColor Yellow
-Write-Host "- Container Registry (Basic): ~`$5/month" -ForegroundColor Yellow
-Write-Host "- Key Vault: ~`$0.03/month" -ForegroundColor Yellow
-Write-Host "- Application Insights: ~`$2.30/month + data ingestion" -ForegroundColor Yellow
-Write-Host "Total: ~`$240-260/month" -ForegroundColor Green
-```
+- Azure AI Search
+- Azure OpenAI (base + token usage)
+- Storage Account
+- Container Registry
+- Key Vault
+- Application Insights
+
+> **💡 Note:** You won't see AKS compute node costs in this view because they're in the managed cluster (MC_) resource group, not your main resource group. To see full AKS costs, change the scope to your **Subscription** level and filter by resource group name, or navigate directly to the MC_ resource group.
+
+### 1.2 View AKS Compute Costs
+
+To see the actual compute costs for your AKS cluster:
+
+1. In the **Cost analysis** view, change the scope to **Subscription** level
+2. Keep **Accumulated costs** selected
+3. Set **Group by** to **Resource group**
+4. Look for the **MC_** resource group
+5. This shows the compute node costs (Virtual Machines, Disks, Load Balancers)
+
+> **💡 Why is this?** Azure Kubernetes Service creates a separate managed resource group (prefixed with MC_) for all cluster infrastructure. This keeps the cluster resources isolated from your application resources.
 
 ## Step 2: Create Budget and Alert
 
-```powershell
-# Create budget
-$budgetName = "workshop-budget"
-$budgetAmount = 300
+Creating a budget helps you track spending and get notified before costs exceed your threshold.
 
+### 2.1 Create Budget in Azure Portal
+
+1. **Open Azure Portal** → Navigate to **Cost Management + Billing**
+2. Select **Cost Management** → Click **Budgets** under Monitoring in the left menu
+3. Click **+ Add** to create a new budget
+4. **Budget details:**
+   - **Filters**: Add a filter **ResourceGroupName** and select your resource group
+   - **Name**: `workshop-budget`
+   - **Reset period**: Monthly
+   - **Creation date**: First day of current month
+   - **Expiration date**: One year from now
+   - **Amount**: `$300`
+   - Click Next
+5. **Alert conditions:**
+   - **Type**: Actual cost
+   - **% of budget**: `80`
+   - **Action group**: Skip (or create if you want)
+   - **Alert recipients (email)**: Enter your email address
+6. Click **Create**
+
+You'll now receive an email alert when your monthly spending reaches 80% of $300 ($240).
+
+### 2.2 (Optional) Create Budget via CLI
+
+If you prefer to use the Azure CLI:
+
+```powershell
+$config = Get-Content .\deployment-output.json | ConvertFrom-Json
+$resourceGroup = $config.resourceGroupName
+
+# Simple budget without email notifications
 az consumption budget create `
     --resource-group $resourceGroup `
-    --budget-name $budgetName `
-    --amount $budgetAmount `
+    --budget-name "workshop-budget-cli" `
+    --category cost `
+    --amount 300 `
     --time-grain Monthly `
     --start-date (Get-Date -Day 1 -Format "yyyy-MM-dd") `
-    --end-date ((Get-Date).AddYears(1).ToString("yyyy-MM-dd")) `
-    --notifications "{\"Actual_GreaterThan_80_Percent\":{\"enabled\":true,\"operator\":\"GreaterThan\",\"threshold\":80,\"contactEmails\":[\"your@email.com\"]}}"
+    --end-date ((Get-Date).AddYears(1).ToString("yyyy-MM-dd"))
 
-Write-Host "Budget created: `$$budgetAmount/month" -ForegroundColor Green
+Write-Host "Budget created: `$300/month" -ForegroundColor Green
+Write-Host "Configure email alerts in the Azure Portal under Budgets" -ForegroundColor Yellow
 ```
 
 ## Step 3: Analyze Resource Utilization
@@ -79,99 +111,12 @@ kubectl top pods --all-namespaces --sort-by=cpu
 # Recommendation: If CPU < 30% consistently, consider smaller node sizes
 ```
 
-## Step 4: Implement Auto-Scaling
+## Step 4: Tag Resources for Cost Allocation
 
 ```powershell
-# Configure Horizontal Pod Autoscaler
-@"
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: agent-webapp-hpa
-  namespace: default
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: agent-webapp
-  minReplicas: 2
-  maxReplicas: 5
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
-"@ | Out-File -FilePath "..\kubernetes\hpa.yaml" -Encoding UTF8
+$config = Get-Content .\deployment-output.json | ConvertFrom-Json
+$resourceGroup = $config.resourceGroupName
 
-kubectl apply -f ..\kubernetes\hpa.yaml
-
-Write-Host "Horizontal Pod Autoscaler configured" -ForegroundColor Green
-```
-
-## Step 5: Optimize Storage Costs
-
-```powershell
-$storageAccount = $config.resources.storageAccount
-
-# Enable lifecycle management
-az storage account management-policy create `
-    --account-name $storageAccount `
-    --policy @"
-{
-  \"rules\": [
-    {
-      \"enabled\": true,
-      \"name\": \"MoveToCool\",
-      \"type\": \"Lifecycle\",
-      \"definition\": {
-        \"filters\": {
-          \"blobTypes\": [\"blockBlob\"],
-          \"prefixMatch\": [\"conference-data/\"]
-        },
-        \"actions\": {
-          \"baseBlob\": {
-            \"tierToCool\": {\"daysAfterModificationGreaterThan\": 30}
-          }
-        }
-      }
-    }
-  ]
-}
-"@
-
-Write-Host "Storage lifecycle policy created" -ForegroundColor Green
-```
-
-## Step 6: Cost Optimization Recommendations
-
-```powershell
-Write-Host "`nCost Optimization Recommendations:" -ForegroundColor Cyan
-
-$recommendations = @(
-    "✅ Use Azure Reservations for AKS compute (up to 72% savings)",
-    "✅ Enable auto-shutdown for dev/test resources",
-    "✅ Right-size VMs based on actual usage (monitor for 2 weeks)",
-    "✅ Use Azure Hybrid Benefit if you have licenses",
-    "✅ Move infrequently accessed data to Cool or Archive tier",
-    "✅ Delete unused snapshots and old container images",
-    "✅ Use Azure Spot VMs for non-critical workloads",
-    "✅ Review and remove orphaned resources (disks, IPs, etc.)"
-)
-
-$recommendations | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-```
-
-## Step 7: Tag Resources for Cost Allocation
-
-```powershell
 # Tag all resources for cost tracking
 $tags = @{
     Environment = $config.environment
@@ -199,6 +144,31 @@ foreach ($resourceId in $resourceIds) {
 Write-Host "Tags applied to all resources" -ForegroundColor Green
 ```
 
+## Cost Optimization Best Practices
+
+Beyond monitoring and budgets, consider these strategies to optimize Azure costs:
+
+### Compute Optimization
+
+- **Azure Reservations**: Save up to 72% on AKS compute by committing to 1 or 3-year reserved instances
+- **Right-size VMs**: Monitor resource utilization for 2+ weeks and adjust VM sizes accordingly
+- **Azure Spot VMs**: Use spot instances for non-critical workloads (up to 90% savings)
+- **Auto-shutdown**: Enable scheduled shutdown for dev/test environments during non-business hours
+- **Azure Hybrid Benefit**: Apply existing Windows Server licenses to save on VM costs
+
+### AI Services Optimization
+
+- **Token usage monitoring**: Track Azure OpenAI token consumption to identify expensive queries
+- **Model selection**: Use smaller models (GPT-4.1-mini vs GPT-4) where appropriate
+- **Caching**: Implement response caching to reduce redundant API calls
+- **Batch processing**: Group similar requests together to optimize throughput
+
+### Organizational Practices
+
+- **Tagging**: Apply consistent tags for cost allocation and chargeback
+- **Regular reviews**: Schedule monthly cost reviews to identify trends and anomalies
+- **FinOps culture**: Involve engineering teams in cost optimization decisions
+
 ## Key Learnings
 
 ✅ **Monitor continuously:** Costs can spiral quickly  
@@ -218,9 +188,9 @@ Write-Host "Tags applied to all resources" -ForegroundColor Green
 - [ ] Regular cost reviews scheduled
 - [ ] Unused resources identified and deleted
 
-## Next Steps
+## Congratulations!
 
-- **[Lab 7: Disaster Recovery & HA](07-disaster-recovery.md)**
+You've completed the AI Agents for IT/Ops Workshop (Path 1)! You now have hands-on experience managing Azure infrastructure for AI agents, including deployment, security, monitoring, and cost optimization.
 
 ## Resources
 

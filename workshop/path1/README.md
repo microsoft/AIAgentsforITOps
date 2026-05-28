@@ -91,14 +91,6 @@ This workshop focuses on **infrastructure management for AI agents**, not agent 
 - Understand pricing models
 - Optimize resource allocation
 
-### 7. **Disaster Recovery** (Lab 7)
-
-- Implement backup strategies for Kubernetes
-- Configure pod disruption budgets
-- Plan for high availability
-- Test failover scenarios
-- Document recovery procedures
-
 ## Key Differences from Path 2
 
 | Aspect | Path 1 (Custom) | Path 2 (Foundry) |
@@ -158,12 +150,7 @@ Follow these labs in order:
    - Optimize AKS resources
    - Set up cost alerts
 
-7. **[Disaster Recovery](07-disaster-recovery.md)** *(~40 minutes)*
-   - Implement backup strategies
-   - Configure pod disruption budgets
-   - Test failover scenarios
-
-**Total estimated time:** ~5-6 hours
+**Total estimated time:** ~4-5 hours
 
 ## Next Steps
 
