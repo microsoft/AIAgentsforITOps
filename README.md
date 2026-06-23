@@ -113,7 +113,7 @@ Both paths implement the same agent experience - answering questions about Micro
 
 ## Repository Structure
 
-> **Note:** Each workshop path is **fully self-contained** with its own infrastructure scripts, application code, Kubernetes manifests, and workshop guides. **Path 1 is complete and ready to use.** Path 2 is under development - placeholder READMEs are in place with descriptions of planned content.
+> **Note:** Each workshop path is **fully self-contained** with its own infrastructure scripts, application code, Kubernetes manifests, and workshop guides. **Both paths are implemented and deployable.** Path 2's later workshop labs (Managed Identity through Foundry Control Plane) are still being written.
 
 ```markdown
 AgentsforITOps/
@@ -137,8 +137,20 @@ AgentsforITOps/
 │   │   │   └── monitoring.ps1
 │   │   └── parameters.json.example
 │   │
-│   ├── path2/                      # Path 2: Foundry Agent infrastructure (Under Development)
-│   │   └── README.md              # 🚧 Placeholder - Under development
+│   ├── path2/                      # Path 2: Foundry Agent infrastructure
+│   │   ├── deploy-infra.ps1       # Provisions Foundry, project, model, Search, AKS
+│   │   ├── deploy-app.ps1         # Verifies the agent and deploys the UI to AKS
+│   │   ├── modules/
+│   │   │   ├── foundry.ps1        # Foundry resource, project, model deployment
+│   │   │   ├── search.ps1
+│   │   │   ├── storage.ps1
+│   │   │   ├── aks.ps1
+│   │   │   ├── acr.ps1
+│   │   │   ├── keyvault.ps1
+│   │   │   ├── monitoring.ps1
+│   │   │   ├── network.ps1
+│   │   │   └── rbac.ps1
+│   │   └── parameters.json.example
 │   │
 │   └── common/                     # Shared infrastructure modules
 │       ├── common.ps1             # Common functions
@@ -155,8 +167,15 @@ AgentsforITOps/
 │   │       ├── Program.cs
 │   │       └── Dockerfile
 │   │
-│   └── path2/                      # Path 2: Foundry Agent application (Under Development)
-│       └── README.md              # 🚧 Placeholder - Under development
+│   └── path2/                      # Path 2: Foundry Agent application
+│       └── agent-webapp/           # Lightweight .NET chat UI (calls Foundry agent)
+│           ├── Controllers/
+│           ├── Models/
+│           ├── Services/
+│           │   └── FoundryAgentService.cs # Calls the Foundry agent (Responses API)
+│           ├── wwwroot/            # Chat UI front-end
+│           ├── Program.cs
+│           └── Dockerfile
 │
 ├── kubernetes/
 │   ├── path1/                     # Path 1: Custom agent manifests
@@ -165,8 +184,12 @@ AgentsforITOps/
 │   │   ├── secretproviderclass.yaml
 │   │   └── configmap.yaml
 │   │
-│   └── path2/                     # Path 2: Foundry agent manifests (Under Development)
-│       └── README.md              # 🚧 Placeholder - Under development
+│   └── path2/                     # Path 2: Foundry agent manifests (UI only)
+│       ├── namespace.yaml
+│       ├── deployment.yaml
+│       ├── service.yaml
+│       ├── secretproviderclass.yaml
+│       └── serviceaccount.yaml
 │
 └── workshop/                      # Workshop guides
     ├── 00-prerequisites.md        # Common prerequisites
@@ -180,8 +203,10 @@ AgentsforITOps/
     │   ├── 05-monitoring-aks.md
     │   └── 06-cost-management.md
     │
-    └── path2/                     # Path 2: Foundry Agent Workshop (Under Development)
-        └── README.md              # 🚧 Placeholder - Under development
+    └── path2/                     # Path 2: Foundry Agent Workshop
+        ├── README.md              # Path 2 overview
+        ├── 00-prerequisites.md
+        └── 01-deploy-infrastructure.md  # (Labs 02–07 in progress)
 ```
 
 ---
@@ -203,7 +228,17 @@ AgentsforITOps/
 
 ### Path 2: Foundry-Hosted Agent
 
-> 🚧 **Under Development**
+- Azure AI Search (Basic): ~$75/month
+- AKS (1-node cluster, D2s_v3): ~$75/month
+- Microsoft Foundry model (GPT-4.1-mini): Base ~$0 + usage ~$5-15/month
+- Azure Storage (Standard LRS): ~$5/month
+- Container Registry (Basic): ~$5/month
+- Key Vault: ~$0.03/month
+- Application Insights: ~$2.30/month + data ingestion
+- **Total**: ~$167-177/month + usage
+
+> **Note:** AKS hosts only the chat UI in Path 2 (the agent runs in Foundry), so it
+> can be sized smaller or swapped for a lighter compute service to reduce cost.
 
 > **💡 Tip**: Delete resources after completing the workshop to avoid ongoing charges.
 
