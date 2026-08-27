@@ -192,23 +192,17 @@ With the Knowledge source and base created, you can close the Azure AI Search pa
 3. On the Foundry resource page, click the "Go to Foundry portal" button.
 4. On the Foundry portal, select your project (the `foundryProject` name from `deployment-output.json`).
 5. On the Foundry resource page, click **Go to Foundry portal** to open the Foundry portal in a new tab.
-6. On the Microsoft Foundry page, click **Tools** on the top-right menu, then click **Connect a tool** in the main menu.
-7. On the Select a tool page, select **Azure AI Search** and click **Add tool**.
-8. On the Create a new connection page, select the following:
-
-   - **Azure AI Search:** the `searchService` from `deployment-output.json`
-   - **Authentication method:** Project Managed Identity
-
-9. Click **Connect** to create the connection.
-10. On the left-hand menu, click **Knowledge**. Note that the Knowledge Base you created in Step 4.1 (`conference-knowledge-base`) is listed as **Active**. This Knowledge Base is now connected to your Foundry project and can be used by the prompt agent.
+6. On the Microsoft Foundry page, make sure the **New Foundry** toggle on the top-right is turned on, then click **Build** on the top-right menu, then click **Knowledge** on the left.
+7. On the Knowledge page, click the drop-down menu under Foundry IQ resources and select the **Azure AI Search** created earlier.
+8. Under the Auth type drop-down menu, select **Project Managed Identity** and click Connect.
+9. Once connected, make sure the status shows **Active** on the new connection.
 
 ---
 
 ## Step 5: Create the Prompt Agent (Portal)
 
 > **Why the portal?** **Prompt agents cannot be created with the Azure CLI.** You
-> create them in the Foundry portal (or with the `azure-ai-projects` Python SDK). The
-> portal is the guided experience used in this workshop.
+> create them in the Foundry portal (or with the `azure-ai-projects` Python SDK). The portal is the guided experience used in this workshop.
 
 1. If not there already, open the Foundry portal at `https://ai.azure.com`.
 2. On the top-right menu, click **Build** and open the **Agents** menu on the right-hand side menu.
