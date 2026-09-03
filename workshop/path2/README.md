@@ -93,13 +93,6 @@ This workshop focuses on **infrastructure and platform management for Foundry-ho
 - Monitor AKS and Search resource usage
 - Implement cost alerts and budgets
 
-### 7. **Foundry Control Plane** (Lab 7)
-
-- **Assets** — inventory and govern models, deployments, connections, and knowledge
-- **Compliance** — review content safety, policies, and data governance settings
-- **Quota** — monitor and manage model capacity (TPM) and deployment limits
-- **Admin** — manage project access, roles, and resource-level controls
-
 ## Key Differences from Path 1
 
 | Aspect | Path 1 (Custom) | Path 2 (Foundry) |
@@ -142,11 +135,10 @@ Follow these labs in order:
 4. **[Secrets Management](04-secrets-management.md)** — Key Vault CSI configuration for the UI and Foundry asset boundaries
 5. **[Monitoring](05-monitoring.md)** — Foundry traces, evaluations, Application Insights, and platform telemetry
 6. **[Cost Management](06-cost-management.md)** — Foundry model, Search, AKS, and observability cost controls
-7. **Foundry Control Plane** — Assets, Compliance, Quota, and Admin *(in progress)*
 
-> 📌 Labs 1–6 mirror Path 1 so you can compare the two approaches directly. Lab 7 is unique to Path 2 and covers the Foundry control plane for platform/infra management.
+> 📌 Labs 1–6 mirror Path 1 so you can compare the two approaches directly.
 >
-> 🚧 **Labs 2–6 are first drafts.** Portal labels and preview capabilities can vary by region and Foundry release; validate each lab against the workshop environment before publishing. Lab 7 is still in progress.
+> 🚧 **Labs 2–6 are first drafts.** Portal labels and preview capabilities can vary by region and Foundry release; validate each lab against the workshop environment before publishing.
 
 ## Next Steps
 

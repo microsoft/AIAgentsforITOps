@@ -113,7 +113,7 @@ Both paths implement the same agent experience - answering questions about Micro
 
 ## Repository Structure
 
-> **Note:** Each workshop path is **fully self-contained** with its own infrastructure scripts, application code, Kubernetes manifests, and workshop guides. **Both paths are implemented and deployable.** Path 2's later workshop labs (Managed Identity through Foundry Control Plane) are still being written.
+> **Note:** Each workshop path is **fully self-contained** with its own infrastructure scripts, application code, Kubernetes manifests, and workshop guides. **Both paths are implemented and deployable.**
 
 ```markdown
 AgentsforITOps/
