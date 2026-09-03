@@ -136,10 +136,6 @@ Follow these labs in order:
 5. **[Monitoring](05-monitoring.md)** — Foundry traces, evaluations, Application Insights, and platform telemetry
 6. **[Cost Management](06-cost-management.md)** — Foundry model, Search, AKS, and observability cost controls
 
-> 📌 Labs 1–6 mirror Path 1 so you can compare the two approaches directly.
->
-> 🚧 **Labs 2–6 are first drafts.** Portal labels and preview capabilities can vary by region and Foundry release; validate each lab against the workshop environment before publishing.
-
 ## Next Steps
 
 👉 **[Start with Lab 0: Prerequisites](00-prerequisites.md)**
