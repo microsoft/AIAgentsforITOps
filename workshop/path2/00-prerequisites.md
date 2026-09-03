@@ -15,7 +15,7 @@ Before starting the **Path 2: Foundry-Hosted Prompt Agent** workshop, ensure you
   - Virtual Machines (for AKS nodes)
   - Azure AI Services (Microsoft Foundry)
   - Azure AI Search
-  - A model deployment (default `gpt-4.1-mini`)
+  - A model deployment (default `gpt-5.4-mini`)
 - No policy restrictions that would block resource creation
 - Access to the **Microsoft Foundry portal**: `https://ai.azure.com`
 
@@ -28,7 +28,7 @@ az account list-locations -o table
 
 ### Model Quota
 
-Path 2 deploys a model (default `gpt-4.1-mini`) into your Foundry resource. Confirm you have quota for it in your chosen region (for example `eastus`, `westus2`, or `swedencentral`).
+Path 2 deploys a model (default `gpt-5.4-mini`) into your Foundry resource. Confirm you have quota for it in your chosen region (for example `eastus`, `westus2`, or `swedencentral`).
 
 ```powershell
 # After login, list Cognitive Services usage/quota in a region
@@ -182,7 +182,7 @@ Ensure your network allows:
 
 - Azure AI Search (Basic): ~$75
 - AKS (2-node cluster, D2s_v3): ~$140
-- Microsoft Foundry (S0): Base ~$0 + model usage ~$5-15/month (gpt-4.1-mini)
+- Microsoft Foundry (S0): Base ~$0 + model usage based on GPT-5.4-mini token consumption
 - Azure Storage (Standard LRS): ~$5
 - Container Registry (Standard): ~$5
 - Key Vault: ~$0.03

@@ -12,7 +12,7 @@ This directory deploys the Azure infrastructure for **Path 2**, where the agent 
 | Azure AI Search | Azure CLI | Backing store for the Foundry **Knowledge Base** |
 | Microsoft Foundry (AIServices) | Azure CLI | Hosts the project, model, and prompt agent |
 | Foundry project | Azure CLI | Container for agents, knowledge, evaluations |
-| Model deployment | Azure CLI | The LLM the agent reasons with (default `gpt-4.1-mini`) |
+| Model deployment | Azure CLI | The LLM the agent reasons with (default `gpt-5.4-mini`) |
 | Container Registry | Azure CLI | Stores the UI image |
 | AKS cluster | Azure CLI | Hosts the **UI only** (not the agent) |
 | Key Vault | Azure CLI | Stores endpoints/secrets for the UI |

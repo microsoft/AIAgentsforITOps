@@ -26,7 +26,7 @@ This deployment creates a complete environment for running a Foundry-hosted prom
 | **Azure AI Search** | Backing store for the Foundry Knowledge Base |
 | **Microsoft Foundry** | Hosts the project, model, and prompt agent |
 | **Foundry Project** | Container for agents, knowledge, and evaluations |
-| **Model Deployment** | The LLM the agent reasons with (default GPT-4.1-mini) |
+| **Model Deployment** | The LLM the agent reasons with (default GPT-5.4-mini) |
 | **Container Registry** | Stores the UI container image |
 | **Key Vault** | Securely stores endpoints and connection strings |
 | **Application Insights** | Monitoring and telemetry |
@@ -75,7 +75,7 @@ On Notepad, update the parameters with your values:
   "environment": "dev",
   "enablePrivateEndpoints": false,
   "enableMonitoring": true,
-  "modelName": "gpt-4.1-mini"
+  "modelName": "gpt-5.4-mini"
 }
 ```
 
@@ -85,7 +85,7 @@ On Notepad, update the parameters with your values:
 - **location**: Azure region with Foundry + model support (eastus, westus2, swedencentral)
 - **resourcePrefix**: 3-10 lowercase letters/numbers (must be globally unique)
 - **tenantId**: Your Azure AD tenant ID (`az account show --query tenantId -o tsv`)
-- **modelName**: Model to deploy for the agent (default `gpt-4.1-mini`)
+- **modelName**: Model to deploy for the agent (default `gpt-5.4-mini`)
 
 **Save the file.**
 
@@ -213,9 +213,7 @@ With the Knowledge source and base created, you can close the Azure AI Search pa
    > script verifies the agent **by this name** and stores it for the UI to call, so the
    > name must match (or you must pass `-AgentName` later).
 
-5. With the agent open, configure it as the following:
-   - **Deployment / Model:** select the deployed model `gpt-4.1-mini`.
-   - **Instructions:** paste the persona below.
+5. With the agent open, set **Deployment / Model** to the deployed `gpt-5.4-mini` model. Under **Instructions**, paste the persona below.
 
    ```text
    You are a helpful Expert Meet-up conference assistant specializing in Microsoft Ignite

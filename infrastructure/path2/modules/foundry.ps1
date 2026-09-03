@@ -10,7 +10,7 @@ function New-WorkshopFoundry {
           - A Foundry resource (Cognitive Services account, kind=AIServices)
             with project management enabled (--allow-project-management).
           - A custom subdomain (required so the resource has a stable AI endpoint).
-          - A model deployment (e.g. gpt-4.1-mini) the agent will reason with.
+          - A model deployment (e.g. gpt-5.4-mini) the agent will reason with.
           - A Foundry project (the container for agents, knowledge, evaluations).
 
         The prompt agent itself and the Knowledge Base are NOT created here -
@@ -31,7 +31,7 @@ function New-WorkshopFoundry {
         [string]$Environment,
         
         [Parameter(Mandatory = $false)]
-        [string]$ModelName = "gpt-4.1-mini",
+        [string]$ModelName = "gpt-5.4-mini",
         
         [Parameter(Mandatory = $false)]
         [string]$ModelVersion = "",
@@ -153,8 +153,7 @@ function New-WorkshopFoundry {
                 $ModelVersion = $latest.Trim()
                 Write-InfoLog "Using latest available version: $ModelVersion"
             } else {
-                $ModelVersion = "2024-11-20"
-                Write-WarningLog "Could not query model versions. Using fallback version: $ModelVersion"
+                throw "Could not resolve an available version for model '$ModelName' in '$Location'. Verify model availability and quota in the target region."
             }
         } else {
             Write-InfoLog "Using specified model version: $ModelVersion"

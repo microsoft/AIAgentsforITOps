@@ -167,7 +167,7 @@ try {
         throw "Resource prefix must be 3-10 lowercase letters or numbers"
     }
     
-    $modelName = if ($params.modelName) { $params.modelName } else { "gpt-4.1-mini" }
+    $modelName = if ($params.modelName) { $params.modelName } else { "gpt-5.4-mini" }
     
     # Step 2: Login and set subscription
     Write-SectionHeader "Azure Authentication"

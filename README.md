@@ -230,7 +230,7 @@ AgentsforITOps/
 
 - Azure AI Search (Basic): ~$75/month
 - AKS (1-node cluster, D2s_v3): ~$75/month
-- Microsoft Foundry model (GPT-4.1-mini): Base ~$0 + usage ~$5-15/month
+- Microsoft Foundry model (GPT-5.4-mini): Base ~$0 + usage based on token consumption
 - Azure Storage (Standard LRS): ~$5/month
 - Container Registry (Basic): ~$5/month
 - Key Vault: ~$0.03/month

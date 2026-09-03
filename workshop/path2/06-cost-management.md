@@ -79,7 +79,7 @@ Look for:
 In the Foundry portal:
 
 1. Click Build on the top-right corner, and select **Deployments** on the menu.
-2. Click the model deployed for the workshop **gpt-4.1-mini** and click **Monitor**.
+2. Click the model deployed for the workshop **gpt-5.4-mini** and click **Monitor**.
 3. Under **Model metrics**, review the data for token usage and estimated costs.
 
 The cost of the Foundry resources is a limited view of the total Azure spend. The Foundry portal shows only the model deployment and agent service, not the supporting AKS, Search, or telemetry resources. In a production scenario, Foundry may be a small fraction of the total cost so you should always plan to review the complete Azure spend for the subscription and resource groups.
