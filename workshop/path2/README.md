@@ -103,7 +103,7 @@ This workshop focuses on **infrastructure and platform management for Foundry-ho
 ## Key Differences from Path 1
 
 | Aspect | Path 1 (Custom) | Path 2 (Foundry) |
-|--------|-----------------|------------------|
+| --- | --- | --- |
 | **Agent Location** | Runs in your AKS pods | Hosted in Foundry |
 | **Code Control** | Full control over agent code | Declarative configuration |
 | **LLM Integration** | Direct OpenAI SDK calls | Via Foundry models |
@@ -137,16 +137,16 @@ Before starting this path, ensure you have:
 Follow these labs in order:
 
 1. **[Deploy Infrastructure](01-deploy-infrastructure.md)** — Foundry, project, Knowledge Base, agent, and UI
-2. **Managed Identity** — RBAC for Foundry, Search, and AKS *(in progress)*
-3. **Networking** — AKS networking and secure access to Foundry *(in progress)*
-4. **Secrets Management** — Key Vault CSI driver for the UI *(in progress)*
-5. **Monitoring** — Foundry tracing and Application Insights *(in progress)*
-6. **Cost Management** — Foundry, Search, and AKS cost control *(in progress)*
+2. **[Managed Identity](02-managed-identity.md)** — RBAC for Foundry, Search, Storage, and the AKS UI
+3. **[Networking](03-networking.md)** — Private inbound access to Foundry and outbound isolation concepts
+4. **[Secrets Management](04-secrets-management.md)** — Key Vault CSI configuration for the UI and Foundry asset boundaries
+5. **[Monitoring](05-monitoring.md)** — Foundry traces, evaluations, Application Insights, and platform telemetry
+6. **[Cost Management](06-cost-management.md)** — Foundry model, Search, AKS, and observability cost controls
 7. **Foundry Control Plane** — Assets, Compliance, Quota, and Admin *(in progress)*
 
 > 📌 Labs 1–6 mirror Path 1 so you can compare the two approaches directly. Lab 7 is unique to Path 2 and covers the Foundry control plane for platform/infra management.
 >
-> 🚧 **Lab 1 is complete and deployable.** Labs 2–7 are still being written and will be linked here as they're published.
+> 🚧 **Labs 2–6 are first drafts.** Portal labels and preview capabilities can vary by region and Foundry release; validate each lab against the workshop environment before publishing. Lab 7 is still in progress.
 
 ## Next Steps
 

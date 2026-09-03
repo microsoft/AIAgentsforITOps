@@ -186,7 +186,7 @@ function Configure-WorkshopRBAC {
     # The portal's Agents page requires the data-plane "Azure AI Project Manager"
     # role. Without it the user sees "You don't have permission to build agents in
     # this project". Grant it to the signed-in user on the Foundry resource.
-    $currentUserId = az ad signed-in user show --query id -o tsv 2>$null
+    $currentUserId = az ad signed-in-user show --query id -o tsv 2>$null
     
     if ([string]::IsNullOrWhiteSpace($currentUserId)) {
         Write-WarningLog "Could not determine the signed-in user; skipping Azure AI Project Manager assignment. Assign it manually to build agents in the portal."
