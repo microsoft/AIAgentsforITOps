@@ -2,7 +2,7 @@
 
 ## Overview
 
-Secure Azure OpenAI and other AI services using private endpoints, eliminating public internet access while maintaining connectivity from your AKS-hosted agent.
+Secure Microsoft Foundry model inference and Azure AI Search using private endpoints, eliminating public data-plane access while maintaining connectivity from the AKS-hosted custom agent.
 
 **Time:** 20-25 minutes  
 **Difficulty:** Intermediate
@@ -10,7 +10,7 @@ Secure Azure OpenAI and other AI services using private endpoints, eliminating p
 ## Learning Objectives
 
 - Understand private endpoints for Azure AI services
-- Configure network access restrictions for Azure OpenAI
+- Configure network access restrictions for the Microsoft Foundry account
 - Test network isolation impact on applications
 - Configure private DNS for service discovery
 - Implement Zero Trust networking for AI workloads
@@ -20,7 +20,7 @@ Secure Azure OpenAI and other AI services using private endpoints, eliminating p
 **Before (Public Endpoints):**
 
 ```
-Internet → Azure OpenAI (public endpoint)
+Internet → Foundry OpenAI-compatible endpoint (public)
          ↑
     AKS Agent Pod
 ```
@@ -30,14 +30,14 @@ Internet → Azure OpenAI (public endpoint)
 ```
 Internet ✗ Blocked
          
-AKS VNet → Private Endpoint → Azure OpenAI (private IP)
+AKS VNet → Private Endpoint → Microsoft Foundry (private IP)
     ↑
 Agent Pod
 ```
 
 ## Why This Matters for AI Services
 
-Azure OpenAI endpoints are **public by default**, meaning:
+The Foundry account's model inference endpoint is **public by default**, meaning:
 
 - ❌ Accessible from anywhere on the internet (with valid credentials)
 - ❌ Susceptible to network-based attacks
@@ -112,7 +112,7 @@ $agentUrl = kubectl get service agent-webapp-service -n agent-demo -o jsonpath='
 if ($agentUrl) {
     Write-Host "`nAgent Web App URL: http://$agentUrl" -ForegroundColor Green
     Write-Host "Open this URL in your browser and test the agent (ask: 'How many Expert Meet-up stations were there at Ignite 2025?')" -ForegroundColor Yellow
-    Write-Host "`n✓ Agent should respond successfully using Azure OpenAI" -ForegroundColor Green
+    Write-Host "`n✓ Agent should respond successfully using the Foundry model deployment" -ForegroundColor Green
 } else {
     Write-Host "`nWaiting for LoadBalancer IP to be assigned..." -ForegroundColor Yellow
     Write-Host "Run: kubectl get services -n agent-demo" -ForegroundColor Cyan
@@ -122,24 +122,24 @@ if ($agentUrl) {
 
 **Action:** Open the URL in your browser and verify the agent works.
 
-## Step 3: Disable Public Access to Azure OpenAI and Search
+## Step 3: Disable Public Access to Foundry and Search
 
 Now let's lock down both AI services - **this will break the agent**:
 
 ```powershell
 # Load service names from config
-$openAiAccount = $config.resources.azureOpenAI
+$foundryAccount = $config.resources.foundry
 $searchService = $config.resources.searchService
 
-Write-Host "Disabling public network access to Azure OpenAI and Search..." -ForegroundColor Cyan
+Write-Host "Disabling public network access to Microsoft Foundry and Search..." -ForegroundColor Cyan
 
-# Disable Azure OpenAI
+# Disable the Foundry account data-plane endpoint
 $subscriptionId = $config.subscriptionId
-$openAiApiUri = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.CognitiveServices/accounts/$openAiAccount`?api-version=2024-10-01"
-$openAiJsonBody = '{\"properties\": {\"publicNetworkAccess\": \"Disabled\", \"networkAcls\": {\"bypass\": \"None\"}}}'  
+$foundryApiUri = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.CognitiveServices/accounts/$foundryAccount`?api-version=2024-10-01"
+$foundryJsonBody = '{\"properties\": {\"publicNetworkAccess\": \"Disabled\", \"networkAcls\": {\"bypass\": \"None\"}}}'
 
-az rest --method patch --uri $openAiApiUri --headers "Content-Type=application/json" --body $openAiJsonBody | Out-Null
-Write-Host "✓ OpenAI public access disabled" -ForegroundColor Green
+az rest --method patch --uri $foundryApiUri --headers "Content-Type=application/json" --body $foundryJsonBody | Out-Null
+Write-Host "✓ Foundry public access disabled" -ForegroundColor Green
 
 # Disable Azure Search (this can take several minutes)
 Write-Host "Disabling Azure Search public access (this may take several minutes)..." -ForegroundColor Yellow
@@ -171,15 +171,15 @@ Read-Host
 Your agent uses a multi-service architecture:
 
 1. **Azure AI Search**: Retrieves relevant documents from the index
-2. **Azure OpenAI**: Reasons over the documents to generate intelligent responses
+2. **Microsoft Foundry**: Hosts the `gpt-5.4-mini` deployment that reasons over the retrieved context
 
 With both services blocked:
 
 - ❌ Cannot retrieve documents from Search
-- ❌ Cannot generate responses from OpenAI  
+- ❌ Cannot generate responses from the Foundry model deployment
 - ❌ Agent completely broken
 
-> **🔍 Debugging Tip:** If you only block OpenAI but leave Search accessible, the agent might show degraded behavior (e.g., returning the same generic answer to every question). This indicates retrieval works but reasoning fails. For a clean break/fix demo, we block both services.
+> **🔍 Debugging Tip:** If you block Foundry but leave Search accessible, retrieval can succeed while model inference fails. For a clear break/fix demonstration, this lab blocks both services.
 
 ## Step 5: Create Private Endpoints in AKS VNet
 
@@ -200,28 +200,28 @@ az network vnet subnet update `
     --disable-private-endpoint-network-policies true `
     2>&1 | Out-Null
 
-# === Azure OpenAI Private Endpoint ===
-Write-Host "Creating Azure OpenAI private endpoint..." -ForegroundColor Cyan
+# === Microsoft Foundry Private Endpoint ===
+Write-Host "Creating Microsoft Foundry private endpoint..." -ForegroundColor Cyan
 
-$openAiId = az cognitiveservices account show `
-    --name $openAiAccount `
+$foundryId = az cognitiveservices account show `
+    --name $foundryAccount `
     --resource-group $resourceGroup `
     --query id `
     -o tsv
 
-$openAiPE = az network private-endpoint create `
-    --name "$openAiAccount-pe" `
+$foundryPE = az network private-endpoint create `
+    --name "$foundryAccount-pe" `
     --resource-group $aksNodeRG `
     --location $location `
     --subnet $subnetId `
-    --private-connection-resource-id $openAiId `
+    --private-connection-resource-id $foundryId `
     --group-id account `
-    --connection-name "$openAiAccount-connection" `
+    --connection-name "$foundryAccount-connection" `
     | ConvertFrom-Json
 
-Write-Host "✓ OpenAI private endpoint created" -ForegroundColor Green
-$openAiPrivateIP = $openAiPE.customDnsConfigs[0].ipAddresses[0]
-Write-Host "  Private IP: $openAiPrivateIP" -ForegroundColor Cyan
+Write-Host "✓ Foundry private endpoint created" -ForegroundColor Green
+$foundryPrivateIP = $foundryPE.customDnsConfigs[0].ipAddresses[0]
+Write-Host "  Private IP: $foundryPrivateIP" -ForegroundColor Cyan
 
 # === Azure Search Private Endpoint ===
 Write-Host "`nCreating Azure Search private endpoint..." -ForegroundColor Cyan
@@ -286,30 +286,30 @@ if ($LASTEXITCODE -eq 0) {
 ```powershell
 Write-Host "`nConfiguring Private DNS zones..." -ForegroundColor Cyan
 
-# === Azure OpenAI DNS ===
-$openAiDnsZone = "privatelink.openai.azure.com"
+# Foundry's direct model endpoint uses an OpenAI-compatible hostname, so this DNS zone name is intentionally retained.
+$foundryDnsZone = "privatelink.openai.azure.com"
 
 az network private-dns zone create `
-    --name $openAiDnsZone `
+    --name $foundryDnsZone `
     --resource-group $resourceGroup `
     2>$null | Out-Null
 
 az network private-dns link vnet create `
-    --name "aks-openai-link" `
+    --name "aks-foundry-link" `
     --resource-group $resourceGroup `
-    --zone-name $openAiDnsZone `
+    --zone-name $foundryDnsZone `
     --virtual-network $aksVNet.id `
     --registration-enabled false `
     2>$null | Out-Null
 
 az network private-dns record-set a add-record `
     --resource-group $resourceGroup `
-    --zone-name $openAiDnsZone `
-    --record-set-name $openAiAccount `
-    --ipv4-address $openAiPrivateIP `
+    --zone-name $foundryDnsZone `
+    --record-set-name $foundryAccount `
+    --ipv4-address $foundryPrivateIP `
     2>$null | Out-Null
 
-Write-Host "✓ OpenAI DNS configured: $openAiAccount.openai.azure.com → $openAiPrivateIP" -ForegroundColor Green
+Write-Host "✓ Foundry model DNS configured: $foundryAccount.openai.azure.com → $foundryPrivateIP" -ForegroundColor Green
 
 # === Azure Search DNS ===
 $searchDnsZone = "privatelink.search.windows.net"
@@ -351,11 +351,11 @@ Read-Host
 
 **What changed?**
 
-- ✅ AKS pods resolve `<openai>.openai.azure.com` to the private IP
+- ✅ AKS pods resolve the Foundry account's `<name>.openai.azure.com` model hostname to the private IP
 - ✅ AKS pods resolve `<search>.search.windows.net` to the private IP
 - ✅ Traffic stays within the VNet (no internet roundtrip)
 - ✅ Both services accept connections from their private endpoints
-- ✅ Agent retrieves documents (Search) and generates responses (OpenAI) successfully
+- ✅ Agent retrieves documents from Search and generates responses with the Foundry model successfully
 
 ## Step 8: View Network Configuration
 
@@ -370,7 +370,7 @@ az network private-endpoint list `
 
 # Show DNS configuration
 Write-Host "`n=== DNS Configuration ===" -ForegroundColor Cyan
-Write-Host "`nOpenAI DNS Records:" -ForegroundColor Yellow
+Write-Host "`nFoundry model DNS records:" -ForegroundColor Yellow
 az network private-dns record-set a list `
     --zone-name "privatelink.openai.azure.com" `
     --resource-group $resourceGroup `
@@ -392,13 +392,13 @@ If you want to revert to public endpoints (e.g., for development):
 ```powershell
 Write-Host "`nReverting to public access (for development)..." -ForegroundColor Yellow
 
-# Re-enable Azure OpenAI public access
+# Re-enable Foundry public access
 $subscriptionId = $config.subscriptionId
-$openAiApiUri = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.CognitiveServices/accounts/$openAiAccount`?api-version=2024-10-01"
-$openAiJsonBody = '{\"properties\": {\"publicNetworkAccess\": \"Enabled\", \"networkAcls\": {\"bypass\": \"AzureServices\"}}}'  
+$foundryApiUri = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.CognitiveServices/accounts/$foundryAccount`?api-version=2024-10-01"
+$foundryJsonBody = '{\"properties\": {\"publicNetworkAccess\": \"Enabled\", \"networkAcls\": {\"bypass\": \"AzureServices\"}}}'
 
-az rest --method patch --uri $openAiApiUri --headers "Content-Type=application/json" --body $openAiJsonBody | Out-Null
-Write-Host "✓ OpenAI public access restored" -ForegroundColor Green
+az rest --method patch --uri $foundryApiUri --headers "Content-Type=application/json" --body $foundryJsonBody | Out-Null
+Write-Host "✓ Foundry public access restored" -ForegroundColor Green
 
 # Re-enable Azure Search public access
 az search service update `
@@ -436,8 +436,8 @@ Write-Host "Note: Private endpoints still exist but public access is now allowed
 ### Multi-Region Deployments
 
 ```
-[Region 1 VNet] → Private Endpoint → [OpenAI Region 1]
-[Region 2 VNet] → Private Endpoint → [OpenAI Region 2]
+[Region 1 VNet] → Private Endpoint → [Foundry Region 1]
+[Region 2 VNet] → Private Endpoint → [Foundry Region 2]
         ↓ (VNet Peering or VPN)
    [Shared Services VNet]
 ```
@@ -446,7 +446,7 @@ Write-Host "Note: Private endpoints still exist but public access is now allowed
 
 ```
          [Hub VNet]
-    ├── OpenAI Private Endpoint
+    ├── Foundry Private Endpoint
     ├── Storage Private Endpoint
     └── Key Vault Private Endpoint
          ↓ (Peering)
@@ -459,10 +459,10 @@ Write-Host "Note: Private endpoints still exist but public access is now allowed
 [On-Prem Network]
         ↓ (ExpressRoute/VPN)
     [Azure VNet]
-    └── OpenAI Private Endpoint
+    └── Foundry Private Endpoint
 ```
 
-On-premises applications can access Azure OpenAI via private connectivity!
+On-premises applications can access the Foundry model endpoint through private connectivity.
 
 ## Next Steps
 
@@ -471,7 +471,7 @@ On-premises applications can access Azure OpenAI via private connectivity!
 ## Resources
 
 - [Azure Private Link Documentation](https://learn.microsoft.com/azure/private-link/)
-- [Private Endpoints for Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/how-to/managed-network)
+- [Configure a private link for Foundry](https://learn.microsoft.com/azure/ai-foundry/how-to/configure-private-link)
 - [Private DNS Zones](https://learn.microsoft.com/azure/dns/private-dns-overview)
 - [AKS Private Link Integration](https://learn.microsoft.com/azure/aks/private-clusters)
 
@@ -481,7 +481,7 @@ On-premises applications can access Azure OpenAI via private connectivity!
 ✅ **DNS is Critical:** Private DNS zones resolve FQDNs to private IPs  
 ✅ **Test the Impact:** Disable public access first, then fix with private endpoint  
 ✅ **Use Existing VNets:** No need for complex VNet peering if you deploy into the same VNet  
-✅ **AI Services Support Private Link:** OpenAI, Cognitive Services, Search all work with private endpoints  
+✅ **AI Services Support Private Link:** Foundry and Search support private endpoints
 ✅ **Break/Fix Teaches Best:** Seeing the failure helps understand the solution  
 ✅ **Every Customer is Different:** Some have hub-spoke, some have flat VNets - principle is the same
 
@@ -492,7 +492,7 @@ On-premises applications can access Azure OpenAI via private connectivity!
 ```powershell
 # 1. Check private endpoint connection status
 az network private-endpoint show `
-    --name "$openAiAccount-pe" `
+    --name "$foundryAccount-pe" `
     --resource-group $aksNodeRG `
     --query 'privateLinkServiceConnections[0].privateLinkServiceConnectionState' `
     | ConvertFrom-Json
@@ -500,7 +500,7 @@ az network private-endpoint show `
 # Expected: status = "Approved"
 
 # 2. Verify DNS resolution FROM an AKS pod
-kubectl run dns-test --image=busybox --rm -it --restart=Never -- nslookup "$openAiAccount.openai.azure.com"
+kubectl run dns-test --image=busybox --rm -it --restart=Never -- nslookup "$foundryAccount.openai.azure.com"
 
 # Expected: Should return private IP (10.x.x.x), not public IP
 
@@ -547,11 +547,11 @@ This is **expected** - your local machine cannot access AI services when public 
 
 1. **Re-enable public access temporarily**:
    ```powershell
-   # Re-enable Azure OpenAI
+    # Re-enable Microsoft Foundry
    $subscriptionId = $config.subscriptionId
-   $openAiApiUri = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.CognitiveServices/accounts/$openAiAccount`?api-version=2024-10-01"
-   $openAiJsonBody = '{\"properties\": {\"publicNetworkAccess\": \"Enabled\", \"networkAcls\": {\"bypass\": \"AzureServices\"}}}'
-   az rest --method patch --uri $openAiApiUri --headers "Content-Type=application/json" --body $openAiJsonBody
+    $foundryApiUri = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.CognitiveServices/accounts/$foundryAccount`?api-version=2024-10-01"
+    $foundryJsonBody = '{\"properties\": {\"publicNetworkAccess\": \"Enabled\", \"networkAcls\": {\"bypass\": \"AzureServices\"}}}'
+    az rest --method patch --uri $foundryApiUri --headers "Content-Type=application/json" --body $foundryJsonBody
    
    # Re-enable Azure Search
    az search service update --name $searchService --resource-group $resourceGroup --public-network-access enabled
@@ -588,7 +588,7 @@ az storage account update `
 Write-Host "✓ Storage Account secured (accessible by Azure AI Search via trusted services)" -ForegroundColor Green
 ```
 
-> **📝 Note:** Unlike OpenAI and Search, the Storage Account uses the **trusted services bypass** (`--bypass AzureServices`) instead of a private endpoint. This allows Azure AI Search to access the storage account for indexing, even when public access is denied. Azure AI Search is a PaaS service that doesn't support consuming storage via private endpoints in the same way AKS does. The agent application doesn't directly access Storage (it queries Search, which returns indexed results).
+> **📝 Note:** Unlike Foundry and Search in this lab, the Storage Account uses the **trusted services bypass** (`--bypass AzureServices`) instead of a private endpoint. This allows Azure AI Search to access the storage account for indexing, even when public access is denied. The agent application doesn't directly access Storage; it queries the index in Search.
 
 **Key Vault:**
 

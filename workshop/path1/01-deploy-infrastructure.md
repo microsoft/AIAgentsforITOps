@@ -24,7 +24,7 @@ This deployment creates a complete environment for running a custom AI agent on 
 | **Resource Group** | Container for all resources |
 | **Azure Storage** | Stores conference documents for search indexing |
 | **Azure AI Search** | Indexes and searches conference content |
-| **Azure OpenAI** | GPT-4.1-mini model for natural language generation |
+| **Microsoft Foundry** | Foundry account and project plus a `gpt-5.4-mini` (version `2026-03-17`) deployment for direct Responses API inference |
 | **Container Registry** | Stores container images for AKS |
 | **Key Vault** | Securely stores secrets (endpoints, connection strings) |
 | **Application Insights** | Monitoring and telemetry |
@@ -68,15 +68,17 @@ On Notepad, update the parameters with your values:
   "environment": "dev",
   "enablePrivateEndpoints": false,
   "enableMonitoring": true,
+  "modelName": "gpt-5.4-mini"
 }
 ```
 
 **Important parameters:**
 
 - **subscriptionId**: Your Azure subscription ID (`az account show --query id -o tsv`)
-- **location**: Azure region with OpenAI support (eastus, westus2, swedencentral)
+- **location**: Azure region where Microsoft Foundry offers `gpt-5.4-mini` with Global Standard capacity
 - **resourcePrefix**: 3-10 lowercase letters/numbers (must be globally unique)
 - **tenantId**: Your Azure AD tenant ID (`az account show --query tenantId -o tsv`)
+- **modelName**: Keep `gpt-5.4-mini`; the deployment script pins version `2026-03-17`
 
 **Save the file.**
 
@@ -95,7 +97,7 @@ The script will:
 1. ✅ Create Resource Group
 2. ✅ Deploy Storage Account and upload conference documents
 3. ✅ Create AI Search service and configure indexing
-4. ✅ Deploy Azure OpenAI with GPT-4.1-mini model
+4. ✅ Create a Microsoft Foundry account and project, then deploy `gpt-5.4-mini`
 5. ✅ Create Container Registry
 6. ✅ Deploy Key Vault and store secrets
 7. ✅ Set up Application Insights
@@ -128,7 +130,7 @@ Quick verification:
 az resource list --resource-group <your-resource-group> --output table
 ```
 
-**You should see 10 resources** including AKS, OpenAI, Search, Storage, ACR, Key Vault, and App Insights.
+You should see AKS, a Microsoft Foundry account and project, Search, Storage, ACR, Key Vault, Application Insights, and their supporting resources.
 
 ---
 

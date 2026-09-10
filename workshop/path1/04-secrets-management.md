@@ -19,7 +19,7 @@ Understand how your deployed AI agent securely accesses secrets using Azure Key 
 
 ```
 Azure Key Vault
-    └─ Secrets (OpenAI key, Search key, etc.)
+  └─ Configuration secrets (Foundry model endpoint, Search endpoint, etc.)
          ↓ (accessed via Managed Identity)
     SecretProviderClass (Kubernetes resource)
          ↓ (CSI Driver mounts as volume)
@@ -71,7 +71,7 @@ az keyvault secret list `
 
 | Secret Name | Purpose | Used By |
 |------------|---------|---------|
-| `AzureOpenAI-Endpoint` | Azure OpenAI service endpoint URL | Agent app (for LLM reasoning) |
+| `Foundry-ModelEndpoint` | Foundry OpenAI-compatible Responses API base URL | Agent app (for direct `gpt-5.4-mini` inference) |
 | `AzureSearch-Endpoint` | Azure AI Search service endpoint URL | Agent app (for RAG document retrieval) |
 | `ApplicationInsights-ConnectionString` | Application Insights connection string | Agent app (for logging/monitoring) |
 | `AKS-ManagedIdentity-ClientId` | Kubelet managed identity client ID | Agent app (for Azure authentication) |
@@ -81,21 +81,21 @@ az keyvault secret list `
 Let's view one secret to see its details:
 
 ```powershell
-# Show Azure OpenAI endpoint metadata
+# Show Foundry model endpoint metadata
 az keyvault secret show `
     --vault-name $keyVault `
-    --name "AzureOpenAI-Endpoint" `
+  --name "Foundry-ModelEndpoint" `
     --query '{Name:name, Enabled:attributes.enabled, Created:attributes.created, Updated:attributes.updated}' `
     --output table
 
 # Retrieve the endpoint value
-$openAiEndpoint = az keyvault secret show `
+$foundryModelEndpoint = az keyvault secret show `
     --vault-name $keyVault `
-    --name "AzureOpenAI-Endpoint" `
+  --name "Foundry-ModelEndpoint" `
     --query value `
     -o tsv
 
-Write-Host "`nAzure OpenAI Endpoint: $openAiEndpoint" -ForegroundColor Cyan
+Write-Host "`nFoundry Responses Endpoint: $foundryModelEndpoint" -ForegroundColor Cyan
 ```
 
 ## Step 2: Understand How Secrets Are Mounted in AKS
@@ -124,7 +124,7 @@ spec:
     keyvaultName: "<your-kv-name>"    # Your Key Vault name
     objects: |                         # Which secrets to mount
       array:
-        - objectName: AzureOpenAI-Endpoint
+        - objectName: Foundry-ModelEndpoint
           objectType: secret
         - objectName: AzureSearch-Endpoint
           objectType: secret
@@ -174,13 +174,13 @@ $podName = kubectl get pods -n agent-demo -l app=agent-webapp -o jsonpath='{.ite
 
 Write-Host "`nVerifying secrets are mounted in pod: $podName" -ForegroundColor Cyan
 
-# Show the Azure OpenAI endpoint (to verify it's mounted)
-kubectl exec -n agent-demo $podName -- cat /mnt/secrets-store/AzureOpenAI-Endpoint
+# Show the Foundry Responses endpoint (to verify it's mounted)
+kubectl exec -n agent-demo $podName -- cat /mnt/secrets-store/Foundry-ModelEndpoint
 ```
 
 **What you'll see:**
 
-- Each secret is a separate file (e.g., `AzureOpenAI-Endpoint`, `AzureSearch-Endpoint`)
+- Each secret is a separate file (for example, `Foundry-ModelEndpoint` and `AzureSearch-Endpoint`)
 - Files are read-only
 - Content matches what's in Key Vault (endpoints use `https://` URLs)
 - CSI driver keeps them synced (by default every 2 minutes)
@@ -263,7 +263,7 @@ objects: |
       objectType: secret
       objectVersion: ""
     - |
-      objectName: AzureOpenAI-Endpoint
+      objectName: Foundry-ModelEndpoint
       objectType: secret
       objectVersion: ""
     - |

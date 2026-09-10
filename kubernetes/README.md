@@ -6,9 +6,9 @@ This directory contains Kubernetes manifest templates for deploying applications
 
 ```text
 kubernetes/
-├── path1/                           # Path 1: Custom Agent with Azure OpenAI
+├── path1/                           # Path 1: Custom Agent with Microsoft Foundry
 │   ├── namespace.yaml               # agent-demo namespace
-│   ├── configmap.yaml               # Config template (search name, OpenAI deployment)
+│   ├── configmap.yaml               # Config template (search name, Foundry model deployment)
 │   ├── secretproviderclass.yaml     # Key Vault CSI driver template
 │   ├── serviceaccount.yaml          # Workload identity service account
 │   ├── deployment.yaml              # Pod deployment template
@@ -48,7 +48,7 @@ Templates use placeholders like `${VARIABLE_NAME}` that are replaced during depl
 **Secrets Retrieved:**
 
 - `AKS-ManagedIdentity-ClientId` - For managed identity authentication
-- `AzureOpenAI-Endpoint` - Azure OpenAI service endpoint
+- `Foundry-ModelEndpoint` - Foundry OpenAI-compatible Responses API endpoint
 - `ApplicationInsights-ConnectionString` - For telemetry
 - `AzureSearch-Endpoint` - Azure AI Search endpoint
 

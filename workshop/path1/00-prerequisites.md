@@ -13,7 +13,7 @@ Before starting the **Path 1: Custom Agent on AKS** workshop, ensure you have al
 - Active Azure subscription with Owner or Contributor access
 - Sufficient quota for:
   - Virtual Machines (for AKS nodes)
-  - Azure AI Services
+  - Microsoft Foundry and a Global Standard `gpt-5.4-mini` deployment
   - Azure Cognitive Search
 - No policy restrictions that would block resource creation
 
@@ -171,7 +171,7 @@ Ensure your network allows:
 
 - Azure AI Search (Basic): ~$75
 - AKS (1-node cluster, D2s_v3): ~$75
-- Azure OpenAI (S0): Base ~$0 + usage ~$5-15/month (GPT-4.1-mini)
+- Microsoft Foundry (S0): no fixed model charge; `gpt-5.4-mini` inference is billed by token usage
 - Azure Storage (Standard LRS): ~$5
 - Container Registry (Standard): ~$5
 - Key Vault: ~$0.03

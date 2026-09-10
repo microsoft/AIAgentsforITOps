@@ -35,10 +35,8 @@ spec:
         # Static configuration
         - name: AzureSearch__IndexName
           value: "conference-documents"
-        - name: Foundry__AgentName
-          value: "conference-expert-agent"
         - name: Foundry__ModelDeploymentName
-          value: "gpt-4o"
+          value: "gpt-5.4-mini"
         
         volumeMounts:
         # Mount Key Vault secrets via CSI driver

@@ -2,14 +2,14 @@
 
 ## Overview
 
-Configure monitoring for your AI services (Azure OpenAI and Azure AI Search) and observe real-time agent telemetry using Application Insights Live Metrics.
+Configure monitoring for Microsoft Foundry and Azure AI Search, then observe real-time telemetry from the custom AKS agent using Application Insights Live Metrics.
 
 **Time:** 20-25 minutes  
 **Difficulty:** Intermediate
 
 ## Learning Objectives
 
-- Configure diagnostic settings for Azure OpenAI and Azure AI Search
+- Configure diagnostic settings for Microsoft Foundry and Azure AI Search
 - Query AI service metrics using Azure Monitor
 - Observe real-time agent telemetry with Application Insights Live Metrics
 - Understand what metrics are important for AI agent management
@@ -17,7 +17,7 @@ Configure monitoring for your AI services (Azure OpenAI and Azure AI Search) and
 ## Architecture: Monitoring Flow
 
 ```
-AI Services (OpenAI, Search)
+AI Services (Foundry model, Search)
     └─ Diagnostic Settings enabled
          ↓ (logs & metrics)
     Log Analytics Workspace
@@ -32,7 +32,7 @@ Agent Application (AKS)
     Live Metrics Dashboard
 ```
 
-## Step 1: Configure Diagnostic Settings for Azure OpenAI
+## Step 1: Configure Diagnostic Settings for Microsoft Foundry
 
 If not already there, navigate to the /infrastructure/path1/ directory:
 
@@ -40,16 +40,16 @@ If not already there, navigate to the /infrastructure/path1/ directory:
 cd infrastructure/path1/
 ```
 
-Let's enable comprehensive logging and metrics for Azure OpenAI:
+Enable logging and metrics on the Foundry account that hosts the model deployment:
 
 ```powershell
 $config = Get-Content .\deployment-output.json | ConvertFrom-Json
 $resourceGroup = $config.resourceGroupName
-$openAiName = $config.resources.azureOpenAI
+$foundryName = $config.resources.foundry
 
 # Get resource IDs
-$openAiId = az cognitiveservices account show `
-    --name $openAiName `
+$foundryId = az cognitiveservices account show `
+    --name $foundryName `
     --resource-group $resourceGroup `
     --query id `
     -o tsv
@@ -59,19 +59,19 @@ $logWorkspaceId = az monitor log-analytics workspace list `
     --query '[0].id' `
     -o tsv
 
-Write-Host "`nConfiguring diagnostics for Azure OpenAI: $openAiName" -ForegroundColor Cyan
+Write-Host "`nConfiguring diagnostics for Microsoft Foundry: $foundryName" -ForegroundColor Cyan
 Write-Host "Sending to Log Analytics: $logWorkspaceId" -ForegroundColor Yellow
 
 # Enable all logs and metrics using category groups
 az monitor diagnostic-settings create `
-    --name "openai-diagnostics" `
-    --resource $openAiId `
+    --name "foundry-diagnostics" `
+    --resource $foundryId `
     --workspace $logWorkspaceId `
     --export-to-resource-specific true `
     --logs '[{"categoryGroup":"audit","enabled":true},{"categoryGroup":"allLogs","enabled":true}]' `
     --metrics '[{"category":"AllMetrics","enabled":true}]'
 
-Write-Host "✓ Azure OpenAI diagnostics configured" -ForegroundColor Green
+Write-Host "✓ Microsoft Foundry diagnostics configured" -ForegroundColor Green
 ```
 
 **What we're collecting:**
@@ -81,10 +81,10 @@ Write-Host "✓ Azure OpenAI diagnostics configured" -ForegroundColor Green
   - Audit logs
   - RequestResponse logs (API requests/responses with prompts and completions)
   - Trace logs (detailed execution traces)
-  - Azure OpenAI Request Usage (usage metrics per request)
+    - Model request usage (usage metrics per request)
 - **AllMetrics**: Token usage, latency, throttling, errors
 
-> **⚠️ Cost Consideration:** In this workshop, we're enabling **all logs** for comprehensive visibility. In production environments, be selective about which log categories you enable. The `RequestResponse` category, which includes full prompts and completions, can be very verbose and significantly increase Log Analytics costs. Consider enabling only essential categories (like `Audit` and `Azure OpenAI Request Usage`) and adding `RequestResponse` only when troubleshooting specific issues.
+> **⚠️ Cost Consideration:** This workshop enables **all logs** for visibility. In production, inspect the categories available on your Foundry account and enable only those required. Request/response logging can contain sensitive prompt content and can significantly increase Log Analytics ingestion costs.
 
 ## Step 2: Configure Diagnostic Settings for Azure AI Search
 
@@ -118,14 +118,14 @@ Write-Host "✓ Azure AI Search diagnostics configured" -ForegroundColor Green
 - **AllLogs category group**: All available logs including OperationLogs (search queries, indexing operations, API calls)
 - **AllMetrics**: Query latency, throttling, storage usage
 
-## Step 3: Query Azure OpenAI Metrics in Azure Portal
+## Step 3: Query Foundry Model Metrics in Azure Portal
 
 Now let's view AI service metrics in the Azure Portal.
 
 ### 3.1 Navigate to Metrics Explorer
 
 1. **Open Azure Portal** → Navigate to your Resource Group
-2. **Find your Azure OpenAI resource** (e.g., `agntwrk-openai-dev`)
+2. **Find your Microsoft Foundry account** (for example, `agntwrk-foundry-dev`)
 3. **Click "Metrics"** in the left menu (under Monitoring section)
 
 ### 3.2 View Token Usage
@@ -137,7 +137,7 @@ Now let's view AI service metrics in the Azure Portal.
 3. **Aggregation**: `Sum`
 4. **Time range**: Default is Last 24 hours, adjust as needed
 
-You should see a chart showing how many tokens your agent has consumed! The chart shows a spike in token usage when you interact with the agent, which directly correlates to your Azure OpenAI costs. Each request to the agent that triggers an OpenAI API call will consume tokens based on the prompt and response size. At the bottom, you will see the (default) aggregation of `Sum`, which shows total tokens consumed in the selected time range. You can change the aggregation to `Average` to see average tokens per request, or `Count` to see number of requests.
+The chart shows tokens consumed by calls from the custom agent to its Foundry `gpt-5.4-mini` deployment. A `Sum` aggregation shows total tokens in the selected period; use dimensions such as model or deployment when available to isolate this workload.
 
 ### 3.3 View Request Latency
 
@@ -147,7 +147,7 @@ You should see a chart showing how many tokens your agent has consumed! The char
 2. **Metric**: Select **"Response Time"** (or **"Time To Response"**)
 3. **Aggregation**: `Average`
 
-This shows how long Azure OpenAI takes to respond to your agent's requests.
+This shows how long the Foundry model deployment takes to respond to requests.
 
 ### 3.4 View Error Rate
 
@@ -204,7 +204,7 @@ As you interact with the agent, the dashboard shows:
 
 **Outgoing Requests (Dependencies)**
 
-- Calls to Azure OpenAI
+- Calls to the Foundry OpenAI-compatible endpoint
 - Calls to Azure AI Search
 - Response times for each dependency
 
@@ -213,7 +213,7 @@ As you interact with the agent, the dashboard shows:
 - **The actual questions users are asking!** (visible in the telemetry stream)
 - Agent processing steps
 - Search queries being executed
-- OpenAI API calls with response times
+- Foundry model API calls with response times
 
 **Server Performance**
 
@@ -227,7 +227,7 @@ As you interact with the agent, the dashboard shows:
 
 Let's write some queries to analyze AI service usage.
 
-### 5.1 Azure OpenAI Request Analysis
+### 5.1 Foundry Model Request Analysis
 
 In the Azure Portal:
 
@@ -247,9 +247,9 @@ AzureDiagnostics
 | take 20
 ```
 
-**What it shows:** Recent Azure OpenAI API calls with duration and results
+**What it shows:** Recent model inference calls on the Foundry account with duration and results
 
-> **💡 Note:** If you don't see any results, data may still be flowing from Azure OpenAI to Log Analytics. Diagnostic logs can take 5-15 minutes to appear after being enabled. Try interacting with your agent to generate some requests, then wait a few minutes and re-run the query.
+> **💡 Note:** Diagnostic logs can take 5–15 minutes to reach Log Analytics. Generate requests through the agent, wait a few minutes, and rerun the query. Available tables and categories can vary; inspect the account's diagnostic settings if `AzureDiagnostics` has no records.
 
 ### 5.2 Azure AI Search Query Performance
 
@@ -284,7 +284,7 @@ AzureDiagnostics
 
 - **Monitor token usage** - Track costs and identify expensive queries
 - **Track latency** - Ensure agent response times meet user expectations
-- **Watch for throttling** - Azure OpenAI has rate limits; monitor for 429 errors
+- **Watch for throttling** - Foundry model deployments have quota and rate limits; monitor for 429 errors
 - **Analyze user questions** - Understand what users are asking to improve the agent
 - **Set up alerts** - Get notified when error rates spike or latency increases
 - **Review logs regularly** - Identify patterns and optimization opportunities
@@ -294,11 +294,11 @@ AzureDiagnostics
 - Store sensitive data in logs without proper controls
 - Ignore error spikes (they often indicate configuration or quota issues)
 - Forget about cost implications of logging (RequestResponse logs can be verbose)
-- Overlook dependency failures (OpenAI/Search downtime affects your agent)
+- Overlook dependency failures (Foundry/Search downtime affects your agent)
 
 ## Monitoring Checklist
 
-✅ **Diagnostic settings enabled** for Azure OpenAI  
+✅ **Diagnostic settings enabled** for Microsoft Foundry
 ✅ **Diagnostic settings enabled** for Azure AI Search  
 ✅ **Metrics dashboard created** for token usage and latency  
 ✅ **Live Metrics tested** by interacting with the agent  
@@ -311,7 +311,7 @@ AzureDiagnostics
 ✅ **Live Metrics shows real-time agent behavior** - Including actual user questions  
 ✅ **Token usage is critical** - Directly impacts costs  
 ✅ **Latency matters** - Users expect fast responses from AI agents  
-✅ **Dependencies are visible** - OpenAI and Search calls appear as outgoing requests  
+✅ **Dependencies are visible** - Foundry model and Search calls appear as outgoing requests
 ✅ **KQL is powerful** - Can correlate events across multiple Azure services  
 
 ## Next Steps
@@ -320,7 +320,7 @@ AzureDiagnostics
 
 ## Resources
 
-- [Azure OpenAI Monitoring](https://learn.microsoft.com/azure/ai-services/openai/how-to/monitoring)
+- [Monitor Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/how-to/monitor-applications)
 - [Azure AI Search Monitoring](https://learn.microsoft.com/azure/search/monitor-azure-cognitive-search)
 - [Application Insights Live Metrics](https://learn.microsoft.com/azure/azure-monitor/app/live-stream)
 - [KQL Query Language](https://learn.microsoft.com/azure/data-explorer/kusto/query/)

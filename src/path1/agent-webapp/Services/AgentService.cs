@@ -1,42 +1,35 @@
+#pragma warning disable OPENAI001
 using AgentWebApp.Models;
-using Azure.AI.OpenAI;
-using Azure.Identity;
-using OpenAI.Chat;
+using OpenAI.Responses;
 using System.Diagnostics;
 using System.Text;
 
 namespace AgentWebApp.Services;
 
 /// <summary>
-/// Implementation of AI Agent service using Azure OpenAI
+/// Implementation of the custom AI agent using a model deployed in Microsoft Foundry.
 /// This implementation demonstrates the RAG (Retrieval Augmented Generation) pattern:
 /// 1. Query Azure AI Search for relevant context
-/// 2. Send context + user question to Azure OpenAI
+/// 2. Send context + user question to the Foundry Responses API
 /// 3. Return intelligent, grounded response
 /// </summary>
 public class AgentService : IAgentService
 {
     private readonly ISearchService _searchService;
     private readonly IConfiguration _configuration;
-    private readonly DefaultAzureCredential _credential;
     private readonly ILogger<AgentService> _logger;
-    private readonly HttpClient _httpClient;
-    private readonly AzureOpenAIClient _openAIClient;
+    private readonly ResponsesClient _responsesClient;
 
     public AgentService(
         ISearchService searchService,
         IConfiguration configuration,
-        DefaultAzureCredential credential,
         ILogger<AgentService> logger,
-        IHttpClientFactory httpClientFactory,
-        AzureOpenAIClient openAIClient)
+        ResponsesClient responsesClient)
     {
         _searchService = searchService;
         _configuration = configuration;
-        _credential = credential;
         _logger = logger;
-        _httpClient = httpClientFactory.CreateClient();
-        _openAIClient = openAIClient ?? throw new ArgumentNullException(nameof(openAIClient), "Azure OpenAI client is required");
+        _responsesClient = responsesClient ?? throw new ArgumentNullException(nameof(responsesClient));
     }
 
     public async Task<ChatResponse> ProcessMessageAsync(
@@ -93,8 +86,8 @@ public class AgentService : IAgentService
                 }
             }
 
-            // Step 3: Call Azure OpenAI with context
-            var agentResponse = await CallAzureOpenAIAsync(
+            // Step 3: Call the model deployed in Foundry with context
+            var agentResponse = await CallFoundryModelAsync(
                 request.Message,
                 contextBuilder.ToString(),
                 conversationId,
@@ -111,7 +104,7 @@ public class AgentService : IAgentService
                 Metadata = new ResponseMetadata
                 {
                     Timestamp = DateTime.UtcNow,
-                    Model = _configuration["AzureOpenAI:DeploymentName"] ?? "gpt-4.1-mini",
+                    Model = _configuration["Foundry:ModelDeploymentName"] ?? "gpt-5.4-mini",
                     ProcessingTimeMs = stopwatch.ElapsedMilliseconds
                 }
             };
@@ -123,7 +116,7 @@ public class AgentService : IAgentService
         }
     }
 
-    private async Task<string> CallAzureOpenAIAsync(
+    private async Task<string> CallFoundryModelAsync(
         string userMessage,
         string context,
         string conversationId,
@@ -131,9 +124,9 @@ public class AgentService : IAgentService
     {
         try
         {
-            var deploymentName = _configuration["AzureOpenAI:DeploymentName"] ?? "gpt-4.1-mini";
+            var deploymentName = _configuration["Foundry:ModelDeploymentName"] ?? "gpt-5.4-mini";
             
-            _logger.LogInformation("Calling Azure OpenAI deployment: {DeploymentName}", deploymentName);
+            _logger.LogInformation("Calling Foundry model deployment: {DeploymentName}", deploymentName);
 
             // Build messages for chat completion
             var systemPrompt = @"You are a helpful conference expert assistant specializing in Microsoft Ignite and Build conferences. 
@@ -158,33 +151,26 @@ Question: {userMessage}
 
 Please answer based on the context provided above.";
 
-            var chatClient = _openAIClient.GetChatClient(deploymentName);
-            
-            var chatMessages = new List<ChatMessage>
+            var responseOptions = new CreateResponseOptions
             {
-                new SystemChatMessage(systemPrompt),
-                new UserChatMessage(userPrompt)
+                Model = deploymentName,
+                MaxOutputTokenCount = 800
             };
+            responseOptions.InputItems.Add(ResponseItem.CreateUserMessageItem($"{systemPrompt}\n\n{userPrompt}"));
 
-            var chatOptions = new ChatCompletionOptions
-            {
-                MaxOutputTokenCount = 800,
-                Temperature = 0.7f
-            };
-
-            _logger.LogDebug("Sending request to Azure OpenAI...");
-            var response = await chatClient.CompleteChatAsync(chatMessages, chatOptions, cancellationToken);
+            _logger.LogDebug("Sending request to the Foundry Responses API...");
+            var response = await _responsesClient.CreateResponseAsync(responseOptions, cancellationToken);
             
-            var responseText = response.Value.Content[0].Text;
-            _logger.LogInformation("Received response from Azure OpenAI ({Length} characters)", responseText.Length);
+            var responseText = response.Value.GetOutputText();
+            _logger.LogInformation("Received response from Foundry ({Length} characters)", responseText.Length);
             
             return responseText;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling Azure OpenAI");
+            _logger.LogError(ex, "Error calling the Foundry model deployment");
             
-            // Fall back to simple response if OpenAI fails
+            // Fall back to a simple response if model inference fails.
             return GenerateFallbackResponse(userMessage, context);
         }
     }
@@ -192,7 +178,7 @@ Please answer based on the context provided above.";
     private string GenerateFallbackResponse(string userMessage, string context)
     {
         // Simple fallback for the workshop
-        // In production, this would be the actual Foundry agent call
+        // In production, replace this workshop fallback with an explicit error response.
         
         if (string.IsNullOrEmpty(context))
         {

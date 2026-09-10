@@ -1,7 +1,9 @@
+#pragma warning disable OPENAI001
 using AgentWebApp.Services;
-using Azure.AI.OpenAI;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using OpenAI.Responses;
+using System.ClientModel.Primitives;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,23 +29,18 @@ string ReadSecretFromFile(string secretName)
 
 // Load secrets from mounted files and add to configuration
 builder.Configuration["ApplicationInsights:ConnectionString"] = ReadSecretFromFile("ApplicationInsights-ConnectionString");
-builder.Configuration["AzureOpenAI:Endpoint"] = ReadSecretFromFile("AzureOpenAI-Endpoint");
-builder.Configuration["AzureOpenAI:DeploymentName"] = "gpt-4.1-mini";  // Default deployment name
+builder.Configuration["Foundry:ModelEndpoint"] = ReadSecretFromFile("Foundry-ModelEndpoint");
+builder.Configuration["Foundry:ModelDeploymentName"] ??= "gpt-5.4-mini";
 builder.Configuration["AzureSearch:Endpoint"] = ReadSecretFromFile("AzureSearch-Endpoint");
 var managedIdentityClientId = ReadSecretFromFile("AKS-ManagedIdentity-ClientId");
 
-// Configure Azure credentials - use Managed Identity in AKS with workload identity
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+// Select the AKS managed identity when mounted; retain developer credentials locally.
+var credentialOptions = new DefaultAzureCredentialOptions();
+if (!string.IsNullOrWhiteSpace(managedIdentityClientId))
 {
-    ManagedIdentityClientId = managedIdentityClientId,
-    ExcludeVisualStudioCredential = true,
-    ExcludeVisualStudioCodeCredential = true,
-    ExcludeSharedTokenCacheCredential = true,
-    ExcludeInteractiveBrowserCredential = true,
-    ExcludeAzureCliCredential = true,
-    ExcludeAzurePowerShellCredential = true,
-    ExcludeAzureDeveloperCliCredential = true
-});
+    credentialOptions.ManagedIdentityClientId = managedIdentityClientId;
+}
+var credential = new DefaultAzureCredential(credentialOptions);
 
 // Add Azure Monitor (Application Insights) for telemetry
 // Connection string is read from mounted secret file
@@ -72,20 +69,23 @@ builder.Services.AddSwaggerGen(c =>
 // Register Azure credential as a service
 builder.Services.AddSingleton(credential);
 
-// Register Azure OpenAI client (required for Path 1)
-var openAIEndpoint = builder.Configuration["AzureOpenAI:Endpoint"];
-if (string.IsNullOrEmpty(openAIEndpoint))
+// Register a Responses API client for direct model inference through Foundry.
+var foundryModelEndpoint = builder.Configuration["Foundry:ModelEndpoint"];
+if (string.IsNullOrEmpty(foundryModelEndpoint))
 {
     throw new InvalidOperationException(
-        "Azure OpenAI endpoint is not configured. " +
-        "Ensure the AzureOpenAI-Endpoint secret is mounted at /mnt/secrets-store/ or configured in appsettings.json");
+        "The Foundry model endpoint is not configured. " +
+        "Ensure the Foundry-ModelEndpoint secret is mounted at /mnt/secrets-store/ or configured in appsettings.json");
 }
 
 builder.Services.AddSingleton(sp =>
 {
     var cred = sp.GetRequiredService<DefaultAzureCredential>();
-    Console.WriteLine($"Configuring Azure OpenAI client with endpoint: {openAIEndpoint}");
-    return new AzureOpenAIClient(new Uri(openAIEndpoint), cred);
+    Console.WriteLine($"Configuring Foundry Responses API client with endpoint: {foundryModelEndpoint}");
+    var tokenPolicy = new BearerTokenPolicy(cred, "https://ai.azure.com/.default");
+    return new ResponsesClient(
+        authenticationPolicy: tokenPolicy,
+        options: new ResponsesClientOptions { Endpoint = new Uri(foundryModelEndpoint) });
 });
 
 // Add HTTP client factory

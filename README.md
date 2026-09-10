@@ -20,21 +20,21 @@ Participants will learn to manage:
 
 This workshop offers **two distinct paths** for managing AI agents on Azure. Both paths use the same conference expert agent scenario but differ in where and how the agent is hosted and managed.
 
-### Path 1: Custom Agent on AKS with Azure OpenAI
+### Path 1: Custom Agent on AKS with Microsoft Foundry
 
 **Best for:** Teams managing their own agent infrastructure, containerized deployments
 
 **Architecture:**
 
 - ✅ **Agent runs entirely on AKS** - Full control over hosting and scaling
-- ✅ **Direct Azure OpenAI integration** - Agent calls OpenAI for LLM reasoning
+- ✅ **Direct Foundry model integration** - Agent calls a `gpt-5.4-mini` deployment through the OpenAI-compatible Responses API
 - ✅ **RAG pattern in code** - Custom implementation of retrieval + generation
 - ✅ **AKS-centric monitoring** - Application Insights integrated in pods
 
 **Infrastructure you'll manage:**
 
 - AKS cluster configuration and scaling
-- Azure OpenAI resource and model deployments
+- Microsoft Foundry account, project, and model deployment
 - Container registry and image management
 - Direct service-to-service authentication and networking
 - Custom agent code deployment
@@ -130,7 +130,7 @@ AgentsforITOps/
 │   │   ├── modules/
 │   │   │   ├── storage.ps1
 │   │   │   ├── search.ps1
-│   │   │   ├── openai.ps1         # Azure OpenAI deployment
+│   │   │   ├── foundry.ps1        # Foundry account, project, and model deployment
 │   │   │   ├── aks.ps1
 │   │   │   ├── acr.ps1
 │   │   │   ├── keyvault.ps1
@@ -158,11 +158,11 @@ AgentsforITOps/
 │
 ├── src/
 │   ├── path1/                      # Path 1: Custom Agent application
-│   │   └── agent-webapp/           # Full .NET web app with Azure OpenAI
+│   │   └── agent-webapp/           # Full .NET custom RAG app using a Foundry model
 │   │       ├── Controllers/
 │   │       ├── Models/
 │   │       ├── Services/
-│   │       │   ├── AgentService.cs        # Azure OpenAI integration
+│   │       │   ├── AgentService.cs        # Search grounding + Foundry Responses API
 │   │       │   └── SearchService.cs       # Azure AI Search client
 │   │       ├── Program.cs
 │   │       └── Dockerfile
@@ -197,10 +197,10 @@ AgentsforITOps/
     ├── path1/                     # Path 1: Custom Agent Workshop
     │   ├── README.md              # Path 1 overview
     │   ├── 01-deploy-infrastructure.md
-    │   ├── 02-azure-openai.md
-    │   ├── 03-aks-agent-deployment.md
-    │   ├── 04-managed-identity.md
-    │   ├── 05-monitoring-aks.md
+    │   ├── 02-managed-identity.md
+    │   ├── 03-networking.md
+    │   ├── 04-secrets-management.md
+    │   ├── 05-monitoring.md
     │   └── 06-cost-management.md
     │
     └── path2/                     # Path 2: Foundry Agent Workshop
@@ -215,11 +215,11 @@ AgentsforITOps/
 
 **Estimated monthly cost for the workshop environment:**
 
-### Path 1: Custom Agent on AKS + Azure OpenAI
+### Path 1: Custom Agent on AKS + Microsoft Foundry
 
 - Azure AI Search (Basic): ~$75/month
 - AKS (1-node cluster, D2s_v3): ~$75/month
-- Azure OpenAI (S0): Base ~$0 + usage ~$5-15/month (GPT-4o-mini)
+- Microsoft Foundry model inference: usage-based `gpt-5.4-mini` token charges
 - Azure Storage (Standard LRS): ~$5/month
 - Container Registry (Basic): ~$5/month
 - Key Vault: ~$0.03/month

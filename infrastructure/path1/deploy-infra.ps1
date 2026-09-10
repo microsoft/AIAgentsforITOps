@@ -3,7 +3,7 @@
     Deploy complete Azure infrastructure for AI Agents for IT/Ops Workshop - Path 1
 
 .DESCRIPTION
-    This script deploys all Azure resources needed for Path 1 (Custom Agent with Azure OpenAI):
+    This script deploys all Azure resources needed for Path 1 (custom agent with Microsoft Foundry):
     - Resource Group
     - Azure Storage Account (for conference data)
     - Azure AI Search (for indexing and RAG)
@@ -11,7 +11,7 @@
     - Azure Kubernetes Service
     - Azure Key Vault
     - Application Insights
-    - Azure OpenAI (GPT-4.1-mini for LLM reasoning)
+    - Microsoft Foundry resource, project, and GPT-5.4-mini deployment
     - Managed Identities and RBAC assignments
     - VNet and Private Endpoints (optional)
 
@@ -70,6 +70,7 @@ function Get-DeploymentParameters {
             environment = $paramsJson.environment
             enablePrivateEndpoints = $paramsJson.enablePrivateEndpoints
             enableMonitoring = $paramsJson.enableMonitoring
+            modelName = $(if ($paramsJson.modelName) { $paramsJson.modelName } else { "gpt-5.4-mini" })
             tags = $tagsHash
         }
         
@@ -92,6 +93,7 @@ function Get-DeploymentParameters {
         environment = Read-Host "Environment (dev/staging/prod)"
         enablePrivateEndpoints = (Read-Host "Enable Private Endpoints? (y/n)") -eq 'y'
         enableMonitoring = $true
+        modelName = "gpt-5.4-mini"
         tags = @{
             Environment = ""
             Project = "AgentsForITOps"
@@ -370,15 +372,15 @@ try {
             -WorkspaceResourceId $appInsights.WorkspaceId
     }
     
-    # Step 11: Create Azure OpenAI
-    Write-SectionHeader "Azure OpenAI"
-    . "$PSScriptRoot\modules\openai.ps1"
-    $openai = New-WorkshopAzureOpenAI `
+    # Step 11: Create Microsoft Foundry and deploy the model
+    Write-SectionHeader "Microsoft Foundry"
+    . "$PSScriptRoot\modules\foundry.ps1"
+    $foundry = New-WorkshopFoundry `
         -ResourceGroupName $params.resourceGroupName `
         -Location $params.location `
         -Prefix $params.resourcePrefix `
         -Environment $params.environment `
-        -ModelName "gpt-4.1-mini" `
+        -ModelName $params.modelName `
         -Tags $params.tags
     
     # Step 12: Configure RBAC
@@ -391,7 +393,7 @@ try {
         -SearchServiceName $search.Name `
         -ContainerRegistryName $acr.Name `
         -KeyVaultName $keyVault.Name `
-        -AzureOpenAIName $openai.Name
+        -FoundryName $foundry.Name
     
     # Step 13: Store application secrets in Key Vault
     Write-SectionHeader "Storing Secrets in Key Vault"
@@ -409,7 +411,7 @@ try {
     # Prepare secrets for Key Vault
     $secrets = @{
         "AKS-ManagedIdentity-ClientId" = $aks.KubeletIdentityClientId
-        "AzureOpenAI-Endpoint" = $openai.Endpoint
+        "Foundry-ModelEndpoint" = $foundry.ResponsesEndpoint
         "ApplicationInsights-ConnectionString" = $appInsightsConnString
         "AzureSearch-Endpoint" = "https://$($search.Name).search.windows.net"
     }
@@ -455,18 +457,25 @@ try {
             aksCluster = $aks.Name
             keyVault = $keyVault.Name
             appInsights = $(if ($appInsights) { $appInsights.Name } else { $null })
-            azureOpenAI = $openai.Name
+            foundry = $foundry.Name
+            foundryProject = $foundry.ProjectName
         }
         endpoints = @{
             storageAccount = "https://$($storage.Name).blob.core.windows.net"
             searchService = "https://$($search.Name).search.windows.net"
             containerRegistry = "$($acr.Name).azurecr.io"
             keyVault = "https://$($keyVault.Name).vault.azure.net"
-            azureOpenAI = $openai.Endpoint
+            foundry = $foundry.Endpoint
+            foundryModel = $foundry.ResponsesEndpoint
+            foundryProject = $foundry.ProjectEndpoint
         }
-        azureOpenAI = @{
-            deploymentName = $openai.DeploymentName
-            modelName = $openai.ModelName
+        foundry = @{
+            projectName = $foundry.ProjectName
+            projectEndpoint = $foundry.ProjectEndpoint
+            modelEndpoint = $foundry.ResponsesEndpoint
+            deploymentName = $foundry.DeploymentName
+            modelName = $foundry.ModelName
+            modelVersion = $foundry.ModelVersion
         }
         managedIdentities = @{
             aksIdentity = $aks.IdentityClientId

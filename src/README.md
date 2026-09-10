@@ -6,7 +6,7 @@ This directory contains the application code for both workshop paths.
 
 ```
 src/
-├── path1/                    # Path 1: Custom Agent with Azure OpenAI
+├── path1/                    # Path 1: Custom Agent with Microsoft Foundry
 │   └── agent-webapp/         # Full agent web application
 │       ├── Controllers/      # API controllers
 │       ├── Services/         # Agent and search services
@@ -26,20 +26,20 @@ src/
 
 **Description**: Full-featured ASP.NET Core web application that:
 - Runs the AI agent directly in the container
-- Integrates with Azure OpenAI for LLM reasoning
+- Calls a Foundry `gpt-5.4-mini` deployment through the OpenAI-compatible Responses API
 - Implements RAG pattern (Retrieval Augmented Generation)
 - Queries Azure AI Search for context
 - Serves chat UI via static files
 
 **Key Components**:
-- `Services/AgentService.cs` - Azure OpenAI integration and RAG pattern
+- `Services/AgentService.cs` - Search grounding, citations, and Foundry model inference
 - `Services/SearchService.cs` - Azure AI Search client
 - `Controllers/ChatController.cs` - REST API for chat
 - `wwwroot/index.html` - Chat interface
 
 **Technologies**:
 - .NET 8.0
-- Azure.AI.OpenAI SDK
+- OpenAI .NET SDK (`OpenAI.Responses`)
 - Azure.Search.Documents SDK
 - Azure.Identity for managed identity authentication
 
@@ -96,7 +96,8 @@ Run locally with Azure services:
 cd src/path1/agent-webapp
 
 # Set local configuration (appsettings.Development.json)
-dotnet user-secrets set "AzureOpenAI:Endpoint" "<your-endpoint>"
+dotnet user-secrets set "Foundry:ModelEndpoint" "https://<foundry-account>.openai.azure.com/openai/v1"
+dotnet user-secrets set "Foundry:ModelDeploymentName" "gpt-5.4-mini"
 dotnet user-secrets set "AzureSearch:Endpoint" "<your-endpoint>"
 
 # Run

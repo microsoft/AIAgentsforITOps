@@ -19,7 +19,7 @@ function Configure-WorkshopRBAC {
         [string]$KeyVaultName,
         
         [Parameter(Mandatory = $false)]
-        [string]$AzureOpenAIName
+        [string]$FoundryName
     )
     
     Write-InfoLog "Configuring RBAC assignments"
@@ -122,14 +122,13 @@ function Configure-WorkshopRBAC {
     
     #endregion
     
-    #region Azure OpenAI RBAC
+    #region Microsoft Foundry model inference RBAC
     
-    if ($AzureOpenAIName) {
-        Write-InfoLog "Assigning Cognitive Services OpenAI User to AKS kubelet identity"
+    if ($FoundryName) {
+        Write-InfoLog "Assigning Cognitive Services OpenAI User to AKS kubelet identity for Foundry model inference"
         
-        # Get OpenAI resource ID
-        $openAIId = az cognitiveservices account show `
-            --name $AzureOpenAIName `
+        $foundryId = az cognitiveservices account show `
+            --name $FoundryName `
             --resource-group $ResourceGroupName `
             --query id `
             -o tsv
@@ -138,12 +137,12 @@ function Configure-WorkshopRBAC {
             --role "Cognitive Services OpenAI User" `
             --assignee-object-id $kubeletIdentity `
             --assignee-principal-type ServicePrincipal `
-            --scope $openAIId `
+            --scope $foundryId `
             2>$null | Out-Null
         
-        Write-SuccessLog "Azure OpenAI RBAC configured"
+        Write-SuccessLog "Foundry model inference RBAC configured"
     } else {
-        Write-WarningLog "Azure OpenAI name not provided, skipping OpenAI RBAC"
+        Write-WarningLog "Foundry name not provided, skipping model inference RBAC"
     }
     
     #endregion
@@ -158,7 +157,7 @@ function Configure-WorkshopRBAC {
             "AKS Kubelet -> Search: Search Index Data Reader"
             "AKS Cluster -> ACR: AcrPull"
             "AKS Kubelet -> Key Vault: Key Vault Secrets User"
-            "AKS Kubelet -> Azure OpenAI: Cognitive Services OpenAI User"
+            "AKS Kubelet -> Foundry model: Cognitive Services OpenAI User"
         )
     }
 }

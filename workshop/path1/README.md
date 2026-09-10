@@ -1,8 +1,8 @@
-# Path 1: Custom Agent on AKS with Azure OpenAI
+# Path 1: Custom Agent on AKS with Microsoft Foundry
 
 ## Overview
 
-In this workshop path, you'll learn to manage a **custom AI agent running entirely on Azure Kubernetes Service (AKS)**. The agent integrates directly with Azure OpenAI for LLM reasoning and implements a RAG (Retrieval-Augmented Generation) pattern in code.
+In this workshop path, you'll learn to manage a **custom AI agent running on Azure Kubernetes Service (AKS)**. Retrieval and orchestration remain in the .NET application: it searches Azure AI Search, assembles grounded context and citations, and calls a `gpt-5.4-mini` model deployment in Microsoft Foundry through its OpenAI-compatible Responses API. It does not invoke a Foundry-hosted prompt agent.
 
 ## Architecture
 
@@ -27,8 +27,8 @@ In this workshop path, you'll learn to manage a **custom AI agent running entire
          │                │                │
          ▼                ▼                ▼
   ┌──────────┐    ┌──────────────┐  ┌──────────┐
-  │  Azure   │    │  Azure AI    │  │   Key    │
-  │  OpenAI  │    │   Search     │  │  Vault   │
+   │ Microsoft│    │  Azure AI    │  │   Key    │
+   │ Foundry  │    │   Search     │  │  Vault   │
   └──────────┘    └──────────────┘  └──────────┘
                          │
                          ▼
@@ -45,7 +45,7 @@ This workshop focuses on **infrastructure management for AI agents**, not agent 
 ### 1. **Infrastructure Deployment** (Lab 1)
 
 - Deploy AKS cluster for agent hosting
-- Provision Azure OpenAI and AI Search services
+- Provision a Microsoft Foundry account, project, `gpt-5.4-mini` deployment, and Azure AI Search
 - Set up Azure Container Registry for image management
 - Configure Storage Account for document indexing
 - Deploy Key Vault for secrets management
@@ -54,7 +54,7 @@ This workshop focuses on **infrastructure management for AI agents**, not agent 
 ### 2. **Managed Identity & RBAC** (Lab 2)
 
 - Configure AKS kubelet managed identity
-- Assign RBAC roles for Azure OpenAI access
+- Assign RBAC roles for Foundry model inference
 - Set up permissions for Azure AI Search
 - Grant Key Vault Secrets User access
 - Understand identity-based authentication
@@ -79,14 +79,14 @@ This workshop focuses on **infrastructure management for AI agents**, not agent 
 
 - Configure Application Insights for AKS pods
 - Set up distributed tracing
-- Monitor Azure OpenAI token usage
+- Monitor Foundry model token usage
 - Create custom dashboards
 - Analyze application performance
 
 ### 6. **Cost Management** (Lab 6)
 
 - Monitor and optimize AKS resource usage
-- Track Azure OpenAI consumption and costs
+- Track Foundry model consumption and costs
 - Implement cost alerts and budgets
 - Understand pricing models
 - Optimize resource allocation
@@ -97,7 +97,7 @@ This workshop focuses on **infrastructure management for AI agents**, not agent 
 |--------|-----------------|------------------|
 | **Agent Location** | Runs in your AKS pods | Hosted in Foundry |
 | **Code Control** | Full control over agent code | Declarative configuration |
-| **LLM Integration** | Direct OpenAI SDK calls | Via Foundry models |
+| **LLM Integration** | Direct Responses API call to a Foundry model deployment | Foundry-hosted prompt agent invokes a model |
 | **Monitoring** | Application Insights in AKS | Foundry tracing + AKS |
 | **Deployment** | Docker + Kubernetes | Foundry deployment API |
 | **Scaling** | Pod autoscaling | Foundry managed |
@@ -112,7 +112,7 @@ Before starting this path, ensure you have:
 - ✅ Basic understanding of .NET applications
 - ✅ Azure subscription with permissions to create:
   - Azure Kubernetes Service
-  - Azure OpenAI
+   - Microsoft Foundry
   - Azure AI Search
   - Managed Identities
 
@@ -121,13 +121,13 @@ Before starting this path, ensure you have:
 Follow these labs in order:
 
 1. **[Deploy Infrastructure](01-deploy-infrastructure.md)** *(~45 minutes)*
-   - Deploy AKS, OpenAI, Search, and supporting services
+   - Deploy AKS, Foundry, Search, and supporting services
    - Configure networking and managed identities
    - Set up Key Vault and secrets
 
 2. **[Managed Identity](02-managed-identity.md)** *(~30 minutes)*
    - Configure kubelet identity
-   - Set up RBAC for OpenAI, Search, Key Vault
+   - Set up RBAC for Foundry, Search, and Key Vault
    - Test managed identity authentication
 
 3. **[Networking](03-networking.md)** *(~45 minutes)*
@@ -146,7 +146,7 @@ Follow these labs in order:
    - Create dashboards
 
 6. **[Cost Management](06-cost-management.md)** *(~30 minutes)*
-   - Monitor OpenAI token usage
+   - Monitor Foundry model token usage
    - Optimize AKS resources
    - Set up cost alerts
 

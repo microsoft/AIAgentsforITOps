@@ -10,12 +10,12 @@ infrastructure/
 │   ├── common.ps1                   # Logging and utility functions
 │   └── validation.ps1               # Parameter validation
 │
-├── path1/                           # Path 1: Custom Agent with Azure OpenAI
+├── path1/                           # Path 1: Custom Agent with Microsoft Foundry
 │   ├── deploy-infra.ps1             # Main deployment orchestrator
 │   ├── deploy-app.ps1               # Application deployment to AKS
 │   ├── parameters.json.example      # Configuration template
 │   └── modules/                     # Infrastructure modules
-│       ├── openai.ps1               # Azure OpenAI deployment
+│       ├── foundry.ps1               # Foundry account, project, and model deployment
 │       ├── aks.ps1                  # AKS cluster
 │       ├── search.ps1               # Azure AI Search
 │       ├── storage.ps1              # Storage account

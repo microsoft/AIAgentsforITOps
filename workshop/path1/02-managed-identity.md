@@ -45,13 +45,13 @@ By default, AKS clusters use **two distinct managed identities**:
 2. **Kubelet Identity**
    - Used by worker nodes and **all pods running on AKS**
    - This is what your application uses to access Azure resources
-   - Granted permissions to ACR, Key Vault, Search, OpenAI, etc.
+    - Granted permissions to ACR, Key Vault, Search, Foundry, etc.
 
 > **Key Point:** When configuring RBAC for your application, you assign roles to the **kubelet identity**, not the control plane identity!
 
 ## Step 1: Explore AKS Managed Identities
 
-If not already there, navigate to the /infrastructure/path1/ directory. 
+If not already there, navigate to the /infrastructure/path1/ directory.
 
 ```powershell
 cd infrastructure/path1/
@@ -148,10 +148,10 @@ $kubeletRoles | ForEach-Object {
   *Allows the agent application to query Azure AI Search indexes. The app retrieves relevant context from conference documents to answer user questions (traditional RAG pattern).*
 
 - **Key Vault Secrets User**  
-  *Allows the Secrets Store CSI Driver to read secrets from Key Vault and mount them as files in `/mnt/secrets-store/`. These secrets indicate how the app and agent can access the Azure OpenAI endpoint, Application Insights connection string, and search endpoint.*
+    *Allows the Secrets Store CSI Driver to read secrets from Key Vault and mount them as files in `/mnt/secrets-store/`. These secrets provide the Foundry Responses endpoint, Application Insights connection string, and Search endpoint.*
 
 - **Cognitive Services OpenAI User**  
-  *Allows the agent application to call the Azure OpenAI `gpt-4.1-mini` deployment. The app sends user questions with retrieved context to generate intelligent responses.*
+    *Allows the agent application to call the `gpt-5.4-mini` deployment on the Microsoft Foundry account. The built-in role retains “OpenAI” in its name because Foundry exposes the model through an OpenAI-compatible inference API.*
 
 > **Note:** The kubelet identity does NOT have Storage access. Azure AI Search's managed identity has **Storage Blob Data Contributor** to read conference documents and build the search index. The pod only queries the already-built index.
 
@@ -319,7 +319,7 @@ az role assignment list `
 
 ## Step 9: Workload Identity for Kubernetes
 
-**Workload Identity** enables Kubernetes pods to authenticate as Azure managed identities without storing credentials. It works by establishing a trust relationship between your AKS cluster's OIDC issuer and Azure Active Directory. When a pod needs to access Azure resources (like Key Vault, Search, or OpenAI), it requests a token from its service account, which Azure validates against a federated credential. This token exchange allows the pod to assume the kubelet managed identity's permissions securely. Think of it as "pod-to-Azure SSO" - your application code simply uses `DefaultAzureCredential`, and Azure handles the authentication automatically.
+**Workload Identity** enables Kubernetes pods to authenticate as Azure managed identities without storing credentials. It works by establishing a trust relationship between your AKS cluster's OIDC issuer and Microsoft Entra ID. When a pod needs to access resources such as Key Vault, Search, or Foundry, it requests a token from its service account, which Entra ID validates against a federated credential. This token exchange allows the pod to assume the managed identity's permissions securely. Think of it as "pod-to-Azure SSO": application code uses `DefaultAzureCredential`, and Azure handles authentication.
 
 Configure workload identity for AKS pods:
 
@@ -439,7 +439,7 @@ Write-Host "Test resources cleaned up" -ForegroundColor Green
 | **Search Index Data Reader** | Query search indexes | Search |
 | **AcrPull** | Pull container images | Registry read |
 | **Key Vault Secrets User** | Read secrets | Get secret values |
-| **Cognitive Services OpenAI User** | Call AI models | Inference |
+| **Cognitive Services OpenAI User** | Call models deployed on the Foundry account | Inference |
 
 ## Next Steps
 

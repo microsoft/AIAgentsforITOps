@@ -30,7 +30,7 @@ Analyze, optimize, and control costs for the AI agent on Azure infrastructure.
 You should see costs broken down by:
 
 - Azure AI Search
-- Azure OpenAI (base + token usage)
+- Microsoft Foundry model inference (`gpt-5.4-mini` token usage)
 - Storage Account
 - Container Registry
 - Key Vault
@@ -158,8 +158,8 @@ Beyond monitoring and budgets, consider these strategies to optimize Azure costs
 
 ### AI Services Optimization
 
-- **Token usage monitoring**: Track Azure OpenAI token consumption to identify expensive queries
-- **Model selection**: Use smaller models (GPT-4.1-mini vs GPT-4) where appropriate
+- **Token usage monitoring**: Track `gpt-5.4-mini` input and output tokens to identify expensive queries
+- **Model selection**: Validate that `gpt-5.4-mini` meets quality requirements before choosing a larger, more expensive model
 - **Caching**: Implement response caching to reduce redundant API calls
 - **Batch processing**: Group similar requests together to optimize throughput
 
