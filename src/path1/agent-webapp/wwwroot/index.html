@@ -99,6 +99,53 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
+        .markdown-body {
+            white-space: normal;
+            overflow-wrap: anywhere;
+            line-height: 1.5;
+        }
+
+        .markdown-body > * + * {
+            margin-top: 0.75em;
+        }
+
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 1.5em;
+        }
+
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            font-size: 1.15em;
+        }
+
+        .markdown-body pre {
+            padding: 10px;
+            background: #f5f5f5;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .markdown-body code {
+            font-family: Consolas, monospace;
+            background: #f5f5f5;
+        }
+
+        .markdown-body blockquote {
+            border-left: 3px solid #ccc;
+            padding-left: 12px;
+        }
+
+        .markdown-body table {
+            display: block;
+            max-width: 100%;
+            overflow-x: auto;
+            border-collapse: collapse;
+        }
+
+        .markdown-body th, .markdown-body td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+        }
+
         .message-time {
             font-size: 11px;
             opacity: 0.6;
@@ -296,6 +343,8 @@
         </div>
     </div>
 
+    <script src="vendor/marked.umd.js"></script>
+    <script src="vendor/purify.min.js"></script>
     <script>
         const chatMessages = document.getElementById('chatMessages');
         const chatForm = document.getElementById('chatForm');
@@ -369,7 +418,21 @@
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            contentDiv.textContent = text;
+            const bodyDiv = document.createElement('div');
+            if (sender === 'agent' && window.marked && window.DOMPurify) {
+                bodyDiv.className = 'markdown-body';
+                bodyDiv.innerHTML = DOMPurify.sanitize(marked.parse(text, { async: false }), {
+                    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'del', 'ul', 'ol', 'li',
+                        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'code',
+                        'a', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+                    ALLOWED_ATTR: ['href', 'title', 'start'],
+                    ALLOW_DATA_ATTR: false,
+                    ALLOW_ARIA_ATTR: false
+                });
+            } else {
+                bodyDiv.textContent = text;
+            }
+            contentDiv.appendChild(bodyDiv);
 
             const timeDiv = document.createElement('div');
             timeDiv.className = 'message-time';

@@ -83,6 +83,7 @@
             padding: 12px 16px;
             border-radius: 12px;
             word-wrap: break-word;
+            white-space: pre-wrap;
         }
 
         .message.user .message-content {
@@ -99,26 +100,51 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .message-content p {
-            margin: 0 0 8px;
+        .markdown-body {
+            white-space: normal;
+            overflow-wrap: anywhere;
+            line-height: 1.5;
         }
 
-        .message-content p:last-child {
-            margin-bottom: 0;
+        .markdown-body > * + * {
+            margin-top: 0.75em;
         }
 
-        .message-content ul,
-        .message-content ol {
-            margin: 6px 0 8px;
-            padding-left: 20px;
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 1.5em;
         }
 
-        .message-content li {
-            margin: 2px 0;
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            font-size: 1.15em;
         }
 
-        .message-content strong {
-            font-weight: 600;
+        .markdown-body pre {
+            padding: 10px;
+            background: #f5f5f5;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .markdown-body code {
+            font-family: Consolas, monospace;
+            background: #f5f5f5;
+        }
+
+        .markdown-body blockquote {
+            border-left: 3px solid #ccc;
+            padding-left: 12px;
+        }
+
+        .markdown-body table {
+            display: block;
+            max-width: 100%;
+            overflow-x: auto;
+            border-collapse: collapse;
+        }
+
+        .markdown-body th, .markdown-body td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
         }
 
         .message-time {
@@ -318,6 +344,8 @@
         </div>
     </div>
 
+    <script src="vendor/marked.umd.js"></script>
+    <script src="vendor/purify.min.js"></script>
     <script>
         const chatMessages = document.getElementById('chatMessages');
         const chatForm = document.getElementById('chatForm');
@@ -402,11 +430,17 @@
             contentDiv.className = 'message-content';
 
             const bodyDiv = document.createElement('div');
-            bodyDiv.className = 'message-text';
-            if (sender === 'agent') {
-                // The Foundry agent replies with light Markdown plus citation markers.
-                // Render it safely as formatted HTML.
-                bodyDiv.innerHTML = formatMessage(text);
+            if (sender === 'agent' && window.marked && window.DOMPurify) {
+                bodyDiv.className = 'markdown-body';
+                const markdown = text.replace(/【[^】]*】/g, '');
+                bodyDiv.innerHTML = DOMPurify.sanitize(marked.parse(markdown, { async: false }), {
+                    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'del', 'ul', 'ol', 'li',
+                        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'code',
+                        'a', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+                    ALLOWED_ATTR: ['href', 'title', 'start'],
+                    ALLOW_DATA_ATTR: false,
+                    ALLOW_ARIA_ATTR: false
+                });
             } else {
                 bodyDiv.textContent = text;
             }
@@ -427,50 +461,6 @@
 
             chatMessages.insertBefore(messageDiv, typingIndicator);
             scrollToBottom();
-        }
-
-        // Escape HTML to prevent injection before applying our own safe formatting.
-        function escapeHtml(text) {
-            return text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-        }
-
-        // Convert the agent's light Markdown into safe HTML and strip Foundry
-        // citation markers like 【4:0†source】.
-        function formatMessage(text) {
-            let t = text.replace(/【[^】]*】/g, '');
-            t = escapeHtml(t);
-            t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-            t = t.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
-
-            const lines = t.split(/\r?\n/);
-            let html = '';
-            let listType = null; // 'ul' or 'ol'
-
-            const closeList = () => {
-                if (listType) { html += `</${listType}>`; listType = null; }
-            };
-
-            for (const raw of lines) {
-                const line = raw.trim();
-                const bullet = line.match(/^[-*]\s+(.*)$/);
-                const numbered = line.match(/^\d+\.\s+(.*)$/);
-
-                if (bullet) {
-                    if (listType !== 'ul') { closeList(); html += '<ul>'; listType = 'ul'; }
-                    html += `<li>${bullet[1]}</li>`;
-                } else if (numbered) {
-                    if (listType !== 'ol') { closeList(); html += '<ol>'; listType = 'ol'; }
-                    html += `<li>${numbered[1]}</li>`;
-                } else {
-                    closeList();
-                    if (line !== '') { html += `<p>${line}</p>`; }
-                }
-            }
-            closeList();
-            return html;
         }
 
         function addErrorMessage(text) {
