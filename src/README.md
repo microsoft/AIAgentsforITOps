@@ -38,7 +38,7 @@ src/
 - `wwwroot/index.html` - Chat interface
 
 **Technologies**:
-- .NET 8.0
+- .NET 10.0
 - OpenAI .NET SDK (`OpenAI.Responses`)
 - Azure.Search.Documents SDK
 - Azure.Identity for managed identity authentication

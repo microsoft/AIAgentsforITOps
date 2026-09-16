@@ -88,7 +88,7 @@ This workshop offers **two distinct paths** for managing AI agents on Azure. Bot
 - PowerShell 7.0 or later
 - Azure CLI 2.50.0 or later
 - kubectl CLI
-- .NET 8.0 SDK (optional, for local development)
+- .NET 10.0 SDK (optional, for local development)
 
 ---
 
