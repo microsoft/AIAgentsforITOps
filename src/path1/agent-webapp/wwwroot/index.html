@@ -419,7 +419,7 @@
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
             const bodyDiv = document.createElement('div');
-            if (sender === 'agent' && window.marked && window.DOMPurify) {
+if (sender === 'agent' && window.marked && window.DOMPurify && window.DOMPurify.isSupported) {
                 bodyDiv.className = 'markdown-body';
                 bodyDiv.innerHTML = DOMPurify.sanitize(marked.parse(text, { async: false }), {
                     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'del', 'ul', 'ol', 'li',
