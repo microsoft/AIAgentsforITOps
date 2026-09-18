@@ -1,16 +1,20 @@
 # See https://aka.ms/customizecontainer to learn how to customize your debug container
 # and https://aka.ms/vscode-docker-dotnet-core for .NET debugging in containers
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl adduser && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 appuser && \
     adduser --system --uid 1001 --ingroup appuser appuser
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 

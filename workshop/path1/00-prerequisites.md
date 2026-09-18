@@ -79,12 +79,12 @@ kubectl version --client
 
 > **Note:** Path 1 uses **ACR Tasks** to build container images directly in Azure. You do NOT need Docker Desktop installed locally. This simplifies the workshop setup and eliminates Docker Desktop licensing requirements.
 
-### .NET 8.0 SDK (Optional - for local development only)
+### .NET 10.0 SDK (Optional - for local development only)
 
 **Installation:**
 
 ```powershell
-winget install Microsoft.DotNet.SDK.8
+winget install Microsoft.DotNet.SDK.10
 ```
 
 **Verify:**
@@ -192,7 +192,7 @@ Ensure your network allows:
 - [ ] Azure CLI extensions (aks-preview) installed
 - [ ] Network connectivity verified
 - [ ] Aware of estimated costs
-- [ ] (Optional) .NET 8.0 SDK for local development
+- [ ] (Optional) .NET 10.0 SDK for local development
 
 ## Troubleshooting
 
