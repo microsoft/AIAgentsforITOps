@@ -74,6 +74,63 @@ az login
 az account set --subscription <your-subscription-id>
 ```
 
+### Register Azure Resource Providers
+
+The deployment scripts assume the required Azure resource providers are already registered in the target subscription. Register the providers used by Path 2, including the additional providers required by Foundry Agent Service:
+
+```powershell
+$providers = @(
+    "Microsoft.Resources"
+    "Microsoft.Authorization"
+    "Microsoft.Storage"
+    "Microsoft.Search"
+    "Microsoft.CognitiveServices"
+    "Microsoft.ContainerRegistry"
+    "Microsoft.ContainerService"
+    "Microsoft.Compute"
+    "Microsoft.Network"
+    "Microsoft.ManagedIdentity"
+    "Microsoft.KeyVault"
+    "Microsoft.OperationalInsights"
+    "Microsoft.Insights"
+    "Microsoft.OperationsManagement"
+    "Microsoft.MachineLearningServices"
+    "Microsoft.App"
+)
+
+foreach ($provider in $providers) {
+    az provider register --namespace $provider --wait
+}
+```
+
+Your account must have permission to register providers in the subscription. Registration can take several minutes.
+
+**Verify:**
+
+```powershell
+$providers | ForEach-Object {
+    $registration = az provider show --namespace $_ | ConvertFrom-Json
+    [pscustomobject]@{
+        Provider = $registration.namespace
+        State = $registration.registrationState
+    }
+} | Format-Table
+```
+
+Confirm that every provider reports `Registered` before continuing.
+
+Register these additional providers only when you use the corresponding optional Foundry feature:
+
+```powershell
+# Standard agent setup with your own Azure Cosmos DB for agent state
+az provider register --namespace Microsoft.DocumentDB --wait
+
+# Grounding with Bing Search
+az provider register --namespace Microsoft.Bing --wait
+```
+
+> **Note:** The workshop scripts do not deploy Azure Cosmos DB. `Microsoft.DocumentDB` is required only if you configure a standard Foundry agent setup with your own Cosmos DB resource. The basic agent setup uses platform-managed agent state.
+
 ### kubectl (Kubernetes CLI)
 
 **Installation:**
@@ -197,6 +254,7 @@ Ensure your network allows:
 - [ ] Access to the Microsoft Foundry portal (`https://ai.azure.com`)
 - [ ] PowerShell 7.0+ installed and working
 - [ ] Azure CLI 2.50.0+ installed and authenticated
+- [ ] Required Azure resource providers registered
 - [ ] kubectl installed
 - [ ] Git installed
 - [ ] Repository cloned locally

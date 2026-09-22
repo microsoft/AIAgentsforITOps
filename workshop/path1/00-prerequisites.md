@@ -63,6 +63,49 @@ az login
 az account set --subscription <your-subscription-id>
 ```
 
+### Register Azure Resource Providers
+
+The deployment scripts assume the required Azure resource providers are already registered in the target subscription. Register the providers used by Path 1 before deploying:
+
+```powershell
+$providers = @(
+    "Microsoft.Resources"
+    "Microsoft.Authorization"
+    "Microsoft.Storage"
+    "Microsoft.Search"
+    "Microsoft.CognitiveServices"
+    "Microsoft.ContainerRegistry"
+    "Microsoft.ContainerService"
+    "Microsoft.Compute"
+    "Microsoft.Network"
+    "Microsoft.ManagedIdentity"
+    "Microsoft.KeyVault"
+    "Microsoft.OperationalInsights"
+    "Microsoft.Insights"
+    "Microsoft.OperationsManagement"
+)
+
+foreach ($provider in $providers) {
+    az provider register --namespace $provider --wait
+}
+```
+
+Your account must have permission to register providers in the subscription. Registration can take several minutes.
+
+**Verify:**
+
+```powershell
+$providers | ForEach-Object {
+    $registration = az provider show --namespace $_ | ConvertFrom-Json
+    [pscustomobject]@{
+        Provider = $registration.namespace
+        State = $registration.registrationState
+    }
+} | Format-Table
+```
+
+Confirm that every provider reports `Registered` before continuing.
+
 ### kubectl (Kubernetes CLI)
 
 **Installation:**
@@ -185,6 +228,7 @@ Ensure your network allows:
 - [ ] Azure subscription with appropriate permissions
 - [ ] PowerShell 7.0+ installed and working
 - [ ] Azure CLI 2.50.0+ installed and authenticated
+- [ ] Required Azure resource providers registered
 - [ ] kubectl installed
 - [ ] Git installed
 - [ ] Repository cloned locally
